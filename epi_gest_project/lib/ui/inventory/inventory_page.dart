@@ -15,7 +15,7 @@ class InventoryPage extends StatefulWidget {
 
 class _InventoryPageState extends State<InventoryPage> {
   late final InventoryController _controller;
-  bool _showFilters = true;
+  bool _showFilters = false;
 
   @override
   void initState() {
@@ -77,7 +77,6 @@ class _InventoryPageState extends State<InventoryPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabeçalho
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(

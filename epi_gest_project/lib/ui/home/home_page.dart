@@ -1,4 +1,5 @@
 import 'package:epi_gest_project/ui/dashboard/dashboard_page.dart';
+import 'package:epi_gest_project/ui/employees/employees_page.dart';
 import 'package:epi_gest_project/ui/home/widgets/company_selector_widget.dart';
 import 'package:epi_gest_project/ui/home/widgets/perfil_widget.dart';
 import 'package:epi_gest_project/ui/inventory/inventory_page.dart';
@@ -270,15 +271,6 @@ class _HomePageState extends State<HomePage> {
 }
 
 // Páginas placeholder
-
-class EmployeesPage extends StatelessWidget {
-  const EmployeesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Funcionários - Lista e cadastro'));
-  }
-}
 
 class ExchangePage extends StatelessWidget {
   const ExchangePage({super.key});

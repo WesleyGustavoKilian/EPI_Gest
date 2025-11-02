@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/ui/inventory/widgets/multi_select_dropdown.dart';
+import 'package:epi_gest_project/ui/widgets/multi_select_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:epi_gest_project/domain/models/inventory_filter_model.dart';
