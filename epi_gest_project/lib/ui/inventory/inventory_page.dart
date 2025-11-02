@@ -1,6 +1,7 @@
 import 'package:epi_gest_project/data/datasources/epi_local_datasource.dart';
 import 'package:epi_gest_project/data/repositories/epi_repository_impl.dart';
 import 'package:epi_gest_project/ui/inventory/inventory_controller.dart';
+import 'package:epi_gest_project/ui/inventory/widgets/add_epi_drawer.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/inventory_data_table.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/inventory_filters.dart';
 import 'package:flutter/material.dart';
@@ -23,10 +24,10 @@ class _InventoryPageState extends State<InventoryPage> {
     final dataSource = EpiLocalDataSource();
     final repository = EpiRepositoryImpl(dataSource);
     _controller = InventoryController(repository);
-    
+
     // Adiciona listener para reconstruir a UI
     _controller.addListener(_onControllerUpdate);
-    
+
     // Carrega os dados iniciais
     _controller.loadEpis();
   }
@@ -48,6 +49,24 @@ class _InventoryPageState extends State<InventoryPage> {
     setState(() {
       _showFilters = !_showFilters;
     });
+  }
+
+  void _showAddEpiDrawer() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: 'Add EPI',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return AddEpiDrawer(
+          onClose: () => Navigator.of(context).pop(),
+          onSave: (data) {
+            // TODO: Implementar salvamento real
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -108,9 +127,7 @@ class _InventoryPageState extends State<InventoryPage> {
                     const SizedBox(width: 12),
                     // Botão Adicionar EPI
                     FilledButton.icon(
-                      onPressed: () {
-                        // TODO: Implementar adição de EPI
-                      },
+                      onPressed: _showAddEpiDrawer,
                       icon: const Icon(Icons.add),
                       label: const Text('Adicionar EPI'),
                       style: FilledButton.styleFrom(
