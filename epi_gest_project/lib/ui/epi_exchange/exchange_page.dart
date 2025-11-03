@@ -344,21 +344,16 @@ class _ExchangePageState extends State<ExchangePage> {
                               Icon(
                                 Icons.search_off,
                                 size: 64,
-                                color: Colors.grey.shade400,
                               ),
                               const SizedBox(height: 16),
                               Text(
                                 'Nenhum funcionário encontrado',
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: Colors.grey.shade600,
-                                ),
+                                style: textTheme.titleMedium
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'Tente ajustar os filtros ou a busca',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey.shade500,
-                                ),
+                                style: textTheme.bodyMedium
                               ),
                             ],
                           ),
@@ -505,9 +500,7 @@ class _EmployeeCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Mat: ${employee['registration']} • ${employee['position']}',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade300,
-                    ),
+                    style: textTheme.bodySmall
                   ),
                 ],
               ),
@@ -521,14 +514,11 @@ class _EmployeeCard extends StatelessWidget {
               Icon(
                 Icons.business_outlined,
                 size: 14,
-                color: Colors.grey.shade300,
               ),
               const SizedBox(width: 4),
               Text(
                 employee['department'],
-                style: textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade300,
-                ),
+                style: textTheme.bodySmall
               ),
               const SizedBox(width: 16),
               if (expiredCount > 0) ...[
@@ -682,16 +672,12 @@ class _EpiItem extends StatelessWidget {
                     children: [
                       Text(
                         'CA: ${epi['ca']}',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade300,
-                        ),
+                        style: textTheme.bodySmall
                       ),
                       const SizedBox(width: 16),
                       Text(
                         'Vencimento: ${_formatDate(epi['expiryDate'])}',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade300,
-                        ),
+                        style: textTheme.bodySmall
                       ),
                     ],
                   ),
