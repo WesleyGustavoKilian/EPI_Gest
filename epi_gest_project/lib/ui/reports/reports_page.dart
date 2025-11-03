@@ -146,7 +146,6 @@ class _ReportsPageState extends State<ReportsPage> {
 
     return Column(
       children: [
-        // Header com título do relatório selecionado
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -158,20 +157,23 @@ class _ReportsPageState extends State<ReportsPage> {
             ),
           ),
           child: Row(
+            spacing: 16,
             children: [
-              Icon(
-                Icons.description_outlined,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                size: 28,
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.description_outlined,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  size: 40,
+                ),
               ),
-              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       _selectedReportType!.title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),

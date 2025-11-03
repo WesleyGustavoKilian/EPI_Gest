@@ -357,9 +357,7 @@ class _ViewEpiDrawerState extends State<ViewEpiDrawer>
         labelText: label,
         labelStyle: TextStyle(
           fontWeight: FontWeight.bold,
-          color: Colors.white60
         ),
-        prefixIconColor: Colors.white60,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,

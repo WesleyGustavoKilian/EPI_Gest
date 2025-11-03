@@ -216,14 +216,6 @@ class CompanySelectorWidget extends StatelessWidget {
               onCompanyChanged?.call();
             },
           ),
-          const Divider(),
-          MenuItemButton(
-            leadingIcon: const Icon(Icons.settings_outlined),
-            child: const Text('Gerenciar Empresas'),
-            onPressed: () {
-              // Navegar para tela de gerenciamento de empresas
-            },
-          ),
         ],
       ),
     );
