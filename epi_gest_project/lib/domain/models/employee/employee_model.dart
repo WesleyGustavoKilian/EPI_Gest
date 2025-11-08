@@ -93,7 +93,7 @@ class Employee {
       rg: data['rg'],
       dataNascimento: data['dataNascimento'] != null ? DateTime.parse(data['dataNascimento']) : null,
       dataEntrada: DateTime.parse(data['dataEntrada']),
-      telefone: data['phone'],
+      telefone: data['telefone'],
       email: data['email'],
       setor: data['setor'],
       cargo: data['cargo'],
@@ -112,14 +112,51 @@ class Employee {
       motivoDesligamento: data['motivosTermino'],
     );
   }
+}
 
-  bool isValid() {
-    return id != null &&
-        id!.isNotEmpty &&
-        matricula != null &&
-        matricula!.isNotEmpty &&
-        nome != null &&
-        nome!.isNotEmpty &&
-        dataEntrada != null;
+class Cargo {
+  final String? id;
+  final String nome;
+  
+  Cargo({
+    this.id,
+    required this.nome,
+  });
+
+  factory Cargo.fromAppwrite(Row row) {
+    return Cargo(
+      id: row.$id,
+      nome: row.data['nomeCargo'],
+    );
   }
+}
+
+class Setor {
+  final String? id;
+  final String nome;
+  
+  Setor({
+    this.id,
+    required this.nome,
+  });
+}
+
+class Turno {
+  final String? id;
+  final String nome;
+  
+  Turno({
+    this.id,
+    required this.nome,
+  });
+}
+
+class Vinculo {
+  final String? id;
+  final String nome;
+
+  Vinculo({
+    this.id,
+    required this.nome,
+  });
 }

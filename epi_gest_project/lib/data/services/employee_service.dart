@@ -2,15 +2,17 @@ import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 
 const String DATABASE_ID = '690e798d002b058839e3';
-const String COLLECTION_ID_EMPLOYEES = '690e798d002b058839e3';
 const String TABLE_ID = 'funcionarios';
 
 class EmployeeService {
+  final Client _client;
   final TablesDB _funcionario;
-  
-  EmployeeService(Client client) : _funcionario = TablesDB(client);
+  final Storage _storage;
 
-  // Criar um novo funcionário
+  EmployeeService(this._client)
+    : _funcionario = TablesDB(_client),
+      _storage = Storage(_client);
+
   Future<void> createEmployee(Employee employee) async {
     try {
       await _funcionario.createRow(
@@ -19,7 +21,7 @@ class EmployeeService {
         tableId: TABLE_ID,
         data: employee.toJson(),
       );
-    } catch (e) {
+    } on AppwriteException {
       throw Exception('Falha ao adicionar funcionário.');
     }
   }
@@ -29,14 +31,9 @@ class EmployeeService {
       final response = await _funcionario.listRows(
         databaseId: DATABASE_ID,
         tableId: TABLE_ID,
-        queries: [
-          Query.equal('ativo', true),
-        ],
+        queries: [Query.equal('ativo', true)],
       );
-      print(response);
-      return response.rows
-          .map((row) => Employee.fromAppwrite(row))
-          .toList();
+      return response.rows.map((row) => Employee.fromAppwrite(row)).toList();
     } catch (e) {
       throw Exception('Falha ao carregar funcionários.');
     }
@@ -73,7 +70,6 @@ class EmployeeService {
     try {
       await updateEmployee(rowId, {
         'isActive': true,
-        // Opcional: limpar dados de desligamento
         'terminationDate': null,
         'terminationReason': null,
       });

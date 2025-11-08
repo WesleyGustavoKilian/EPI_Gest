@@ -1,3 +1,4 @@
+import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/add_employee_drawer.dart';
@@ -21,7 +22,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
   late Future<void> _loadEmployeesFuture;
   List<Employee> _allEmployees = [];
   List<Employee> _filteredEmployees = [];
-  Map<String, dynamic> _appliedFilters = {};
+  Map<String, dynamic> _appliedFilters = {
+  };
 
   // MODIFICADO: Estas listas podem ser preenchidas dinamicamente no futuro
   final List<String> _setores = [
@@ -78,7 +80,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
           _applyFilters(_appliedFilters, updateState: false);
         });
       }
-    } catch (e) {
+    } on AppwriteException catch (e) {
       throw Exception('Falha ao carregar funcionários: $e');
     }
   }
@@ -89,32 +91,31 @@ class _EmployeesPageState extends State<EmployeesPage> {
     });
   }
 
-  // MODIFICADO: Lógica de filtro para usar o modelo Employee
   void _applyFilters(Map<String, dynamic> filters, {bool updateState = true}) {
     void apply() {
       _appliedFilters = filters;
       _filteredEmployees = _allEmployees.where((employee) {
-        if (filters['nome'] != null ||
-            (filters['nome'] as String).isNotEmpty ||
+        if (filters['nome'] != null &&
+            (filters['nome'] as String).isNotEmpty &&
             !employee.nome.toLowerCase().contains(
               (filters['nome'] as String).toLowerCase(),
             )) {
           return false;
         }
-        if (filters['id'] != null ||
-            (filters['id'] as String).isNotEmpty ||
+        if (filters['matricula'] != null &&
+            (filters['matricula'] as String).isNotEmpty &&
             !employee.matricula.toLowerCase().contains(
-              (filters['id'] as String).toLowerCase(),
+              (filters['matricula'] as String).toLowerCase(),
             )) {
           return false;
         }
-        if (filters['setores'] != null ||
-            (filters['setores'] as List).isNotEmpty ||
+        if (filters['setores'] != null &&
+            (filters['setores'] as List).isNotEmpty &&
             !(filters['setores'] as List).contains(employee.setor)) {
           return false;
         }
-        if (filters['funcoes'] != null ||
-            (filters['funcoes'] as List).isNotEmpty ||
+        if (filters['funcoes'] != null &&
+            (filters['funcoes'] as List).isNotEmpty &&
             !(filters['funcoes'] as List).contains(employee.cargo)) {
           return false;
         }

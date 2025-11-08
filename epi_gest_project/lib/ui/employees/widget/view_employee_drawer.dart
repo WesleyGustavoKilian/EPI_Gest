@@ -370,7 +370,7 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
 
   Widget _buildImageDisplay(ThemeData theme) {
     final imageUrl = widget.employee.imagemPath;
-    final hasImage = imageUrl != null || imageUrl!.isNotEmpty;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
     return Container(
       width: 300,
       height: 250,
