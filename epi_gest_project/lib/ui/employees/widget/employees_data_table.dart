@@ -10,6 +10,7 @@ class EmployeesDataTable extends StatefulWidget {
   final Function(Employee) onView;
   final Function(Employee) onEdit;
   final Function(Employee) onInactivate;
+  final Function(Employee) onActivate;
 
   const EmployeesDataTable({
     super.key,
@@ -17,6 +18,7 @@ class EmployeesDataTable extends StatefulWidget {
     required this.onView,
     required this.onEdit,
     required this.onInactivate,
+    required this.onActivate,
   });
 
   @override
@@ -32,14 +34,14 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
   final ScrollController _bodyScrollController = ScrollController();
   bool _isSyncingScroll = false;
 
-  static const double idWidth = 110.0;
+  static const double matriculaWidth = 130.0;
   static const double nomeWidth = 280.0;
   static const double setorWidth = 200.0;
   static const double funcaoWidth = 220.0;
   static const double dataEntradaWidth = 160.0;
   static const double acoesWidth = 160.0;
   static const double totalTableWidth =
-      idWidth +
+      matriculaWidth +
       nomeWidth +
       setorWidth +
       funcaoWidth +
@@ -160,7 +162,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                 ),
                 child: Row(
                   children: [
-                    _buildHeaderCell('ID', idWidth, 0),
+                    _buildHeaderCell('Matricula', matriculaWidth, 0),
                     _buildHeaderCell('Nome do Funcionário', nomeWidth, 1),
                     _buildHeaderCell('Setor', setorWidth, 2),
                     _buildHeaderCell('Função na Empresa', funcaoWidth, 3),
@@ -203,9 +205,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // MODIFICADO: Usa dados do modelo Employee
                                 _buildDataCell(
-                                  width: idWidth,
+                                  width: matriculaWidth,
                                   context: context,
                                   child: Container(
                                     margin: const EdgeInsets.all(5),
@@ -303,7 +304,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          employee.vinculo ?? '-',
+                                          employee.cargo ?? '-',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -359,12 +360,16 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                       ),
                                       IconButton(
                                         icon: Icon(
-                                          Icons.person_off_outlined,
-                                          color: theme.colorScheme.error,
+                                          employee.statusAtivo
+                                              ? Icons.person
+                                              : Icons.person_off_outlined,
+                                          color: employee.statusAtivo ? null : theme.colorScheme.error,
                                         ),
-                                        tooltip: 'Inativar',
+                                        tooltip: employee.statusAtivo
+                                            ? 'Inativar'
+                                            : 'Ativar',
                                         onPressed: () =>
-                                            widget.onInactivate(employee),
+                                            employee.statusAtivo ? widget.onInactivate(employee) : widget.onActivate(employee),
                                       ),
                                     ],
                                   ),
@@ -385,7 +390,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
     );
   }
 
-  // ... (Seus métodos _buildHeaderCell, _buildDataCell, _getTempoServico estão perfeitos e não precisam de alteração)
   Widget _buildHeaderCell(
     String label,
     double width,
@@ -462,7 +466,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                 ),
         ),
       ),

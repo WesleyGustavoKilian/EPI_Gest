@@ -17,56 +17,47 @@ class EmployeesPage extends StatefulWidget {
 class _EmployeesPageState extends State<EmployeesPage> {
   bool _showFilters = false;
 
-  // MODIFICADO: Gerenciamento de estado com dados reais do Appwrite
   late Future<void> _loadEmployeesFuture;
   List<Employee> _allEmployees = [];
   List<Employee> _filteredEmployees = [];
-  Map<String, dynamic> _appliedFilters = {
-  };
+  Map<String, dynamic> _appliedFilters = {};
 
-  // MODIFICADO: Estas listas podem ser preenchidas dinamicamente no futuro
-  final List<String> _setores = [
-    'Produção',
-    'Qualidade',
-    'Manutenção',
-    'Logística',
-    'Administrativo',
-    'Recursos Humanos',
-    'Financeiro',
-    'Comercial',
-  ];
-  final List<String> _funcoes = [
-    'Operador de Máquinas',
-    'Inspetor de Qualidade',
-    'Técnico de Manutenção',
-    'Auxiliar de Produção',
-    'Supervisor',
-    'Gerente',
-    'Analista',
-    'Assistente Administrativo',
-  ];
+  final List<String> _setores = [];
+  final List<String> _funcoes = [];
 
   @override
   void initState() {
     super.initState();
-    // MODIFICADO: Inicia o carregamento dos dados do Appwrite
-    _loadEmployeesFuture = _loadEmployees();
+    _loadReferenceData();
+      _loadEmployeesFuture = _loadEmployees();
   }
 
-  // ADICIONADO: Método para buscar dados do Appwrite
-  Future<void> _loadEmployees({bool showLoading = false}) async {
-    // Se showLoading for true, criamos um novo Future para o FutureBuilder mostrar o spinner
-    if (showLoading || mounted) {
+  Future<void> _loadReferenceData() async {
+    if (!mounted) return;
+    final employeeService = Provider.of<EmployeeService>(
+      context,
+      listen: false,
+    );
+    try {
+      final results = await Future.wait([
+        employeeService.getAllSetores(),
+        employeeService.getAllCargos(),
+      ]);
+
+      final setoresResult = results[0] as List<Setor>;
+      final funcoesResult = results[1] as List<Cargo>;
+
+      if (!mounted) return;
       setState(() {
-        _loadEmployeesFuture = _internalLoad();
+        _setores.addAll(setoresResult.map((s) => s.nome));
+        _funcoes.addAll(funcoesResult.map((c) => c.nome));
       });
-    } else {
-      // Carregamento inicial ou silencioso
-      await _internalLoad();
+    } catch (e) {
+      debugPrint('Erro ao carregar dados de referência para filtros: $e');
     }
   }
 
-  Future<void> _internalLoad() async {
+  Future<void> _loadEmployees() async {
     try {
       final employeeService = Provider.of<EmployeeService>(
         context,
@@ -80,8 +71,16 @@ class _EmployeesPageState extends State<EmployeesPage> {
         });
       }
     } on AppwriteException catch (e) {
-      throw Exception('Falha ao carregar funcionários: $e');
+      throw Exception('Falha ao carregar funcionários: ${e.message}');
+    }  catch (e) {
+      throw Exception('Ocorreu um erro inesperado: ${e.toString()}');
     }
+  }
+
+  void _reloadData() {
+    setState(() {
+      _loadEmployeesFuture = _loadEmployees();
+    });
   }
 
   void _toggleFilters() {
@@ -91,8 +90,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
   }
 
   void _applyFilters(Map<String, dynamic> filters, {bool updateState = true}) {
-    void apply() {
+    void performFilter() {
       _appliedFilters = filters;
+      if (filters.isEmpty) {
+        _filteredEmployees = List.from(_allEmployees);
+        return;
+      }
       _filteredEmployees = _allEmployees.where((employee) {
         if (filters['nome'] != null &&
             (filters['nome'] as String).isNotEmpty &&
@@ -118,6 +121,17 @@ class _EmployeesPageState extends State<EmployeesPage> {
             !(filters['funcoes'] as List).contains(employee.cargo)) {
           return false;
         }
+        if (filters['ativo'] != null && (filters['ativo'] as List).isNotEmpty) {
+          final List<String> statusList = List<String>.from(filters['ativo']);
+
+          if (statusList.contains('Ativo') && !statusList.contains('Inativo')) {
+            if (!employee.statusAtivo) return false;
+          }
+
+          if (statusList.contains('Inativo') && !statusList.contains('Ativo')) {
+            if (employee.statusAtivo) return false;
+          }
+        }
         if (filters['dataEntrada'] != null) {
           final filterDate = filters['dataEntrada'] as DateTime;
           final employeeDate = employee.dataEntrada;
@@ -132,9 +146,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
     }
 
     if (updateState) {
-      setState(apply);
+      setState(performFilter);
     } else {
-      apply();
+      performFilter();
     }
   }
 
@@ -153,7 +167,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
       pageBuilder: (context, _, __) => EmployeeDrawer(
         onClose: () => Navigator.of(context).pop(),
         onSave: () {
-          _loadEmployees(showLoading: true);
+          _reloadData(); // Recarrega os dados com feedback visual
         },
       ),
     );
@@ -168,7 +182,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         employeeToEdit: employee,
         onClose: () => Navigator.of(context).pop(),
         onSave: () {
-          _loadEmployees(showLoading: true);
+          _reloadData();
         },
       ),
     );
@@ -206,7 +220,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
       ),
     );
 
-    if (confirm == true || mounted) {
+    // CORREÇÃO: A verificação 'mounted' deve estar DENTRO do if para segurança
+    if (confirm == true) {
+      if (!mounted)
+        return; // Garante que o widget ainda existe antes de operações async
       final employeeService = Provider.of<EmployeeService>(
         context,
         listen: false,
@@ -219,11 +236,59 @@ class _EmployeesPageState extends State<EmployeesPage> {
             backgroundColor: Colors.green,
           ),
         );
-        _loadEmployees(showLoading: true);
+        _reloadData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro ao inativar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _activateEmployee(Employee employee) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Ativação'),
+        content: Text(
+          'Tem certeza que deseja ativar novamente ${employee.nome}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Ativar'),
+          ),
+        ],
+      ),
+    );
+
+    // CORREÇÃO: Lógica de verificação corrigida
+    if (confirm == true) {
+      if (!mounted) return;
+      final employeeService = Provider.of<EmployeeService>(
+        context,
+        listen: false,
+      );
+      try {
+        await employeeService.activateEmployee(employee.id!);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Funcionário ativado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _reloadData();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao ativar: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -247,7 +312,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
               onClearFilters: _clearFilters,
             ),
           Expanded(
-            // MODIFICADO: Usa FutureBuilder para lidar com o carregamento inicial
             child: FutureBuilder(
               future: _loadEmployeesFuture,
               builder: (context, snapshot) {
@@ -255,19 +319,17 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Erro ao carregar dados: ${snapshot.error}'),
-                  );
+                  return _buildErrorState(theme, snapshot.error.toString());
                 }
                 if (_filteredEmployees.isEmpty) {
                   return _buildEmptyState(theme);
                 }
-                // MODIFICADO: Passa as funções de ação para o DataTable
                 return EmployeesDataTable(
                   employees: _filteredEmployees,
                   onView: _showViewEmployeeDrawer,
                   onEdit: _showEditEmployeeDrawer,
                   onInactivate: _inactivateEmployee,
+                  onActivate: _activateEmployee,
                 );
               },
             ),
@@ -282,6 +344,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
       decoration: BoxDecoration(
+        // CORREÇÃO: 'withValues' não existe, o correto é 'withOpacity'
         gradient: LinearGradient(
           colors: [
             colorScheme.primary.withOpacity(0.08),
@@ -400,6 +463,47 @@ class _EmployeesPageState extends State<EmployeesPage> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  // ADICIONADO: Widget para exibir o estado de erro de forma mais amigável
+  Widget _buildErrorState(ThemeData theme, String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cloud_off_rounded,
+              size: 64,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Falha na Conexão',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _reloadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Tentar Novamente'),
+            ),
+          ],
+        ),
       ),
     );
   }

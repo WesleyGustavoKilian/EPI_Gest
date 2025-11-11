@@ -49,6 +49,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   bool get _isViewing => widget.view;
 
   final Map<String, TextEditingController> _controllers = {
+    'id': TextEditingController(),
     'matricula': TextEditingController(),
     'nome': TextEditingController(),
     'cpf': TextEditingController(),
@@ -189,6 +190,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   void _populateFormForEdit() {
     final employee = widget.employeeToEdit!;
+    _controllers['id']!.text = employee.id!;
     _controllers['matricula']!.text = employee.matricula;
     _controllers['nome']!.text = employee.nome;
     _controllers['cpf']!.text = employee.cpf ?? '';
@@ -420,6 +422,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
     try {
       final employee = Employee(
+        id: _controllers['id']!.text.trim(),
         matricula: _controllers['matricula']!.text.trim(),
         nome: _controllers['nome']!.text.trim(),
         dataEntrada: _dataEntrada!,

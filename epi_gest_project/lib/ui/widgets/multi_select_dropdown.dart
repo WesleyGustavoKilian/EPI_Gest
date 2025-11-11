@@ -7,6 +7,7 @@ class MultiSelectDropdown extends StatefulWidget {
   final List<String> selectedItems;
   final Function(List<String>) onChanged;
   final String allItemsLabel;
+  final double width;
 
   const MultiSelectDropdown({
     super.key,
@@ -16,6 +17,7 @@ class MultiSelectDropdown extends StatefulWidget {
     required this.selectedItems,
     required this.onChanged,
     this.allItemsLabel = 'Todos',
+    required this.width,
   });
 
   @override
@@ -43,7 +45,7 @@ class _MultiSelectDropdownState extends State<MultiSelectDropdown> {
     return StatefulBuilder(
       builder: (context, setDropdownState) {
         return Positioned(
-          width: (context.findRenderObject() as RenderBox?)?.size.width ?? 300,
+          width: (context.findRenderObject() as RenderBox?)?.size.width ?? widget.width,
           child: CompositedTransformFollower(
             link: _layerLink,
             showWhenUnlinked: false,
@@ -163,9 +165,7 @@ class _MultiSelectDropdownState extends State<MultiSelectDropdown> {
                               widget.onChanged(tempSelected);
                               _closeDropdown();
                             },
-                            child: Text(
-                              'Aplicar (${tempSelected.length})',
-                            ),
+                            child: Text('Aplicar (${tempSelected.length})'),
                           ),
                         ],
                       ),
@@ -204,9 +204,7 @@ class _MultiSelectDropdownState extends State<MultiSelectDropdown> {
           return GestureDetector(
             onTap: _closeDropdown,
             behavior: HitTestBehavior.translucent,
-            child: Stack(
-              children: [_buildDropdownContent()],
-            ),
+            child: Stack(children: [_buildDropdownContent()]),
           );
         },
         child: InkWell(
@@ -227,10 +225,7 @@ class _MultiSelectDropdownState extends State<MultiSelectDropdown> {
               filled: true,
               fillColor: theme.colorScheme.surface,
             ),
-            child: Text(
-              _getDisplayText(),
-              style: theme.textTheme.bodyLarge,
-            ),
+            child: Text(_getDisplayText(), style: theme.textTheme.bodyLarge),
           ),
         ),
       ),

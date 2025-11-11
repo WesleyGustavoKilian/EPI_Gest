@@ -29,15 +29,12 @@ class EmployeesFilters extends StatefulWidget {
 class _EmployeesFiltersState extends State<EmployeesFilters> {
   bool _showAdvancedFilters = false;
 
-  // Filtros temporários
   late Map<String, dynamic> _tempFilters;
 
-  // Controllers
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _dataEntradaController = TextEditingController();
-
-  // Controllers para adicionar novos itens
+  final TextEditingController _ativoController = TextEditingController();
   final TextEditingController _novoSetorController = TextEditingController();
   final TextEditingController _novaFuncaoController = TextEditingController();
 
@@ -54,7 +51,7 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
   void _loadFiltersToTemp() {
     _tempFilters = Map<String, dynamic>.from(widget.appliedFilters);
     _nomeController.text = _tempFilters['nome'] ?? '';
-    _idController.text = _tempFilters['id'] ?? '';
+    _idController.text = _tempFilters['matricula'] ?? '';
 
     if (_tempFilters['dataEntrada'] != null) {
       final date = _tempFilters['dataEntrada'] as DateTime;
@@ -119,9 +116,9 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
         lastDate: DateTime.now(),
         builder: (context, child) {
           return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: Theme.of(context).colorScheme,
-            ),
+            data: Theme.of(
+              context,
+            ).copyWith(colorScheme: Theme.of(context).colorScheme),
             child: child!,
           );
         },
@@ -138,7 +135,6 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
     }
   }
 
-  // ===== MÉTODOS PARA ADICIONAR SETOR =====
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -153,6 +149,7 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
         ),
       ),
       child: Column(
+        spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Chips de filtros ativos
@@ -162,13 +159,32 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
               runSpacing: 8,
               children: _buildActiveFilterChips(theme),
             ),
-            const SizedBox(height: 16),
           ],
 
-          // Linha principal de filtros
           Row(
+            spacing: 16,
             children: [
-              // Filtro de Nome
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: _idController,
+                  decoration: InputDecoration(
+                    labelText: 'Matricula',
+                    hintText: 'Digite o Matricula...',
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: theme.colorScheme.surface,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _tempFilters['matricula'] = value.isEmpty ? null : value;
+                    });
+                  },
+                ),
+              ),
               Expanded(
                 flex: 3,
                 child: TextField(
@@ -190,58 +206,24 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
-
-              // Filtro de ID
               Expanded(
-                flex: 2,
-                child: TextField(
-                  controller: _idController,
-                  decoration: InputDecoration(
-                    labelText: 'ID',
-                    hintText: 'Digite o ID...',
-                    prefixIcon: const Icon(Icons.badge_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: theme.colorScheme.surface,
-                  ),
-                  onChanged: (value) {
+                flex: 3,
+                child: MultiSelectDropdown(
+                  label: 'Status do Funcionário',
+                  icon: Icons.toggle_on,
+                  items: const ['Ativo', 'Inativo'],
+                  width: 350,
+                  selectedItems: _tempFilters['ativo'] ?? [],
+                  allItemsLabel: 'Todos',
+                  onChanged: (selected) {
                     setState(() {
-                      _tempFilters['id'] = value.isEmpty ? null : value;
+                      _tempFilters['ativo'] = selected.isEmpty
+                          ? null
+                          : selected;
                     });
                   },
                 ),
               ),
-              const SizedBox(width: 16),
-
-              // Filtro de Setor (Multi-Select) com botão de adicionar
-              Expanded(
-                flex: 2,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: MultiSelectDropdown(
-                        label: 'Setor',
-                        icon: Icons.business_outlined,
-                        items: widget.setores,
-                        selectedItems: _tempFilters['setores'] ?? [],
-                        allItemsLabel: 'Todos',
-                        onChanged: (selected) {
-                          setState(() {
-                            _tempFilters['setores'] =
-                                selected.isEmpty ? null : selected;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-
-              // Botão Filtros Avançados
               FilledButton.tonalIcon(
                 onPressed: () {
                   setState(() {
@@ -259,9 +241,6 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-
-              // Botão Filtrar
               FilledButton.icon(
                 onPressed: _hasChanges ? _applyFilters : null,
                 icon: const Icon(Icons.filter_alt),
@@ -275,10 +254,7 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
               ),
             ],
           ),
-
-          // Filtros Avançados
           if (_showAdvancedFilters) ...[
-            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -290,16 +266,17 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                 ),
               ),
               child: Column(
+                spacing: 16,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    spacing: 8,
                     children: [
                       Icon(
                         Icons.tune,
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
                       Text(
                         'Filtros Avançados',
                         style: theme.textTheme.titleSmall?.copyWith(
@@ -309,10 +286,9 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
                   Row(
+                    spacing: 16,
                     children: [
-                      // Data de Entrada
                       Expanded(
                         flex: 2,
                         child: TextField(
@@ -320,7 +296,9 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                           decoration: InputDecoration(
                             labelText: 'Data de Entrada',
                             hintText: 'dd/mm/aaaa',
-                            prefixIcon: const Icon(Icons.calendar_today_outlined),
+                            prefixIcon: const Icon(
+                              Icons.calendar_today_outlined,
+                            ),
                             suffixIcon: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -350,9 +328,30 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                           onTap: _selectDate,
                         ),
                       ),
-                      const SizedBox(width: 16),
-
-                      // Função na Empresa (Multi-Select) com botão de adicionar
+                      Expanded(
+                        flex: 2,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: MultiSelectDropdown(
+                                label: 'Setor',
+                                icon: Icons.business_outlined,
+                                items: widget.setores,
+                                selectedItems: _tempFilters['setores'] ?? [],
+                                allItemsLabel: 'Todos',
+                                width: 300,
+                                onChanged: (selected) {
+                                  setState(() {
+                                    _tempFilters['setores'] = selected.isEmpty
+                                        ? null
+                                        : selected;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       Expanded(
                         flex: 3,
                         child: Row(
@@ -364,10 +363,12 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                                 items: widget.funcoes,
                                 selectedItems: _tempFilters['funcoes'] ?? [],
                                 allItemsLabel: 'Todas',
+                                width: 300,
                                 onChanged: (selected) {
                                   setState(() {
-                                    _tempFilters['funcoes'] =
-                                        selected.isEmpty ? null : selected;
+                                    _tempFilters['funcoes'] = selected.isEmpty
+                                        ? null
+                                        : selected;
                                   });
                                 },
                               ),
@@ -400,8 +401,8 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
           label = 'Nome';
           displayValue = value.toString();
           break;
-        case 'id':
-          label = 'ID';
+        case 'matricula':
+          label = 'Matricula';
           displayValue = value.toString();
           break;
         case 'setores':
@@ -422,6 +423,12 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
               ? funcoes.first
               : '${funcoes.length} funções';
           break;
+        case 'ativo':
+          label = 'Status';
+          final status = value as List<String>;
+          displayValue = status.length == 1
+            ? status.first
+            : 'Todos';
       }
 
       if (label.isNotEmpty) {

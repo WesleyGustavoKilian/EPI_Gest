@@ -81,7 +81,6 @@ class EmployeeService {
         databaseId: DATABASE_ID,
         tableId: 'funcionarios',
         queries: [
-          Query.equal('ativo', true),
           Query.select(['*', 'cargo_id.*']),
           Query.select(['*', 'setor_id.*']),
           Query.select(['*', 'vinculo_id.*']),
@@ -103,8 +102,8 @@ class EmployeeService {
         rowId: rowId,
         data: data,
       );
-    } catch (e) {
-      throw Exception('Falha ao atualizar funcionário.');
+    } on AppwriteException catch (e) {
+      throw Exception('Falha ao atualizar funcionário. $e');
     }
   }
 
@@ -112,8 +111,8 @@ class EmployeeService {
   Future<void> inactivateEmployee(String rowId) async {
     try {
       await updateEmployee(rowId, {
-        'isActive': false,
-        'terminationDate': DateTime.now().toIso8601String(),
+        'ativo': false,
+        'dataTermino': DateTime.now().toIso8601String(),
       });
     } catch (e) {
       throw Exception('Falha ao inativar funcionário.');
@@ -124,9 +123,9 @@ class EmployeeService {
   Future<void> activateEmployee(String rowId) async {
     try {
       await updateEmployee(rowId, {
-        'isActive': true,
-        'terminationDate': null,
-        'terminationReason': null,
+        'ativo': true,
+        'dataTermino': null,
+        'motivosTermino': null,
       });
     } catch (e) {
       throw Exception('Falha ao reativar funcionário.');

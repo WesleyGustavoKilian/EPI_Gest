@@ -122,6 +122,7 @@ class _InventoryFiltersState extends State<InventoryFilters> {
                   items: ['No Prazo', 'À Vencer', 'Vencido'],
                   selectedItems: _tempFilters.validades ?? [],
                   allItemsLabel: 'Todas',
+                  width: 300,
                   onChanged: (selected) {
                     setState(() {
                       _tempFilters = _tempFilters.copyWith(
@@ -168,6 +169,7 @@ class _InventoryFiltersState extends State<InventoryFilters> {
                   items: widget.categories,
                   selectedItems: _tempFilters.categorias ?? [],
                   allItemsLabel: 'Todas',
+                  width: 300,
                   onChanged: (selected) {
                     setState(() {
                       _tempFilters = _tempFilters.copyWith(
@@ -285,6 +287,7 @@ class _InventoryFiltersState extends State<InventoryFilters> {
                           items: widget.suppliers,
                           selectedItems: _tempFilters.fornecedores ?? [],
                           allItemsLabel: 'Todos',
+                          width: 300,
                           onChanged: (selected) {
                             setState(() {
                               _tempFilters = _tempFilters.copyWith(
