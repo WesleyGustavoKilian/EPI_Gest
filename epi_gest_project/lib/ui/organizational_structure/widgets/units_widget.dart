@@ -27,6 +27,7 @@ class UnitsWidgetState extends State<UnitsWidget> {
       'tipo': 'Matriz',
       'responsavel': 'Carlos Silva',
       'status': 'Ativa',
+      'endereco': 'Rua 14A, 2125, Jardim America'
     },
     {
       'id': '2',
@@ -35,6 +36,7 @@ class UnitsWidgetState extends State<UnitsWidget> {
       'tipo': 'Filial',
       'responsavel': 'Ana Oliveira',
       'status': 'Ativa',
+      'endereco': 'Rua 14A, 2125, Jardim America'
     },
   ];
 
@@ -495,8 +497,6 @@ class UnitsWidgetState extends State<UnitsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // REMOVIDO O TÍTULO DUPLICADO
-        // APENAS A LISTA DE UNIDADES CADASTRADAS
         if (_unidadesCadastradas.isEmpty)
           _buildEmptyState()
         else

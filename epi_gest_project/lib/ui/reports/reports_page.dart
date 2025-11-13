@@ -22,13 +22,10 @@ class _ReportsPageState extends State<ReportsPage> {
     return Scaffold(
       body: Row(
         children: [
-          // Painel lateral de seleção
           Expanded(flex: 2, child: _buildSelectionPanel()),
 
-          // Divisor vertical
           const VerticalDivider(width: 1),
 
-          // Painel de preview/configuração
           Expanded(flex: 3, child: _buildConfigurationPanel()),
         ],
       ),
@@ -37,80 +34,84 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildSelectionPanel() {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.08),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+            ),
+          ),
+          child: Row(
+            spacing: 16,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.assessment,
+                  color: theme.colorScheme.onPrimaryContainer,
+                  size: 40,
+                ),
+              ),
+              Column(
+                spacing: 4,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Relatórios',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.8,
+                      height: 1.1,
+                    ),
+                  ),
+                  Text(
+                    'Selecione o tipo de relatório que deseja gerar',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              spacing: 16,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.assessment,
-                    color: theme.colorScheme.onPrimaryContainer,
-                    size: 40,
-                  ),
-                ),
-                Column(
-                  spacing: 4,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Relatórios',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Selecione o tipo de relatório que deseja gerar',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-              itemCount: ReportType.values.length,
-              itemBuilder: (context, index) {
-                final reportType = ReportType.values[index];
-                final isSelected = _selectedReportType == reportType;
+        const Divider(height: 1),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+            itemCount: ReportType.values.length,
+            itemBuilder: (context, index) {
+              final reportType = ReportType.values[index];
+              final isSelected = _selectedReportType == reportType;
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: ReportTypeCard(
-                    reportType: reportType,
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() {
-                        _selectedReportType = reportType;
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ReportTypeCard(
+                  reportType: reportType,
+                  isSelected: isSelected,
+                  onTap: () {
+                    setState(() {
+                      _selectedReportType = reportType;
+                    });
+                  },
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -147,13 +148,18 @@ class _ReportsPageState extends State<ReportsPage> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            border: Border(
-              bottom: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(12),
             ),
           ),
           child: Row(
@@ -169,21 +175,28 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
               Expanded(
                 child: Column(
+                  spacing: 4,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       _selectedReportType!.title,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.8,
+                            height: 1.1,
+                          ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       _selectedReportType!.description,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
+                          ),
                     ),
                   ],
                 ),
@@ -191,8 +204,7 @@ class _ReportsPageState extends State<ReportsPage> {
             ],
           ),
         ),
-
-        // Conteúdo scrollável
+        const Divider(height: 1),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),

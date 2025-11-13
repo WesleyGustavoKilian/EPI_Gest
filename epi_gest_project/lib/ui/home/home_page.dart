@@ -19,17 +19,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   bool _isRailExtended = true;
-  final int _pendingExchanges = 5; // Número de trocas pendentes
+  final int _pendingExchanges = 5;
 
-  // Lista de páginas/telas que serão navegadas - CORRIGIDA
   final List<Widget> _pages = [
-    const DashboardPage(),                    
-    const EmployeesPage(),                    
-    const OrganizationalStructurePage(),      
-    const InventoryPage(),                    
-    const ExchangePage(),                     
-    const ReportsPage(),                      
-    const SettingsPage(),                     
+    const DashboardPage(),
+    const EmployeesPage(),
+    const InventoryPage(),
+    const ExchangePage(),
+    const OrganizationalStructurePage(),
+    const ReportsPage(),
+    const SettingsPage(),
   ];
 
   void _onDestinationSelected(int index) {
@@ -99,12 +98,6 @@ class _HomePageState extends State<HomePage> {
                       selectedIcon: Icon(Icons.people),
                       label: Text('Funcionários'),
                     ),
-                    // NOVO MENU: ESTRUTURA ORGANIZACIONAL
-                    const NavigationRailDestination(
-                      icon: Icon(Icons.account_tree_outlined),
-                      selectedIcon: Icon(Icons.account_tree),
-                      label: Text('Estrutura Organizacional'),
-                    ),
                     const NavigationRailDestination(
                       icon: Icon(Icons.inventory_2_outlined),
                       selectedIcon: Icon(Icons.inventory_2),
@@ -122,6 +115,11 @@ class _HomePageState extends State<HomePage> {
                         child: const Icon(Icons.swap_horiz),
                       ),
                       label: const Text('Troca de EPIs'),
+                    ),
+                    const NavigationRailDestination(
+                      icon: Icon(Icons.account_tree_outlined),
+                      selectedIcon: Icon(Icons.account_tree),
+                      label: Text('Estrutura Organizacional'),
                     ),
                     const NavigationRailDestination(
                       icon: Icon(Icons.assessment_outlined),

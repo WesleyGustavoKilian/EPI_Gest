@@ -1,3 +1,4 @@
+import 'package:epi_gest_project/ui/organizational_structure/widgets/organizational_type_card.dart';
 import 'package:flutter/material.dart';
 import 'widgets/units_widget.dart';
 import 'widgets/departments_widget.dart';
@@ -10,10 +11,12 @@ class OrganizationalStructurePage extends StatefulWidget {
   const OrganizationalStructurePage({super.key});
 
   @override
-  State<OrganizationalStructurePage> createState() => _OrganizationalStructurePageState();
+  State<OrganizationalStructurePage> createState() =>
+      _OrganizationalStructurePageState();
 }
 
-class _OrganizationalStructurePageState extends State<OrganizationalStructurePage> {
+class _OrganizationalStructurePageState
+    extends State<OrganizationalStructurePage> {
   int _selectedSection = 0;
 
   // Keys para controlar cada widget
@@ -26,36 +29,42 @@ class _OrganizationalStructurePageState extends State<OrganizationalStructurePag
 
   final List<Map<String, dynamic>> _sections = [
     {
+      'id': 'unidade',
       'title': 'Unidades (Matriz / Filial)',
       'icon': Icons.business_outlined,
       'description': 'Gerencie matriz e filiais da empresa',
       'index': 0,
     },
     {
+      'id': 'setor',
       'title': 'Setores / Departamentos',
       'icon': Icons.work_outline,
       'description': 'Configure departamentos e áreas',
       'index': 1,
     },
     {
+      'id': 'cargo',
       'title': 'Cargos / Funções',
       'icon': Icons.badge_outlined,
       'description': 'Defina cargos e responsabilidades',
       'index': 2,
     },
     {
+      'id': 'vinculo',
       'title': 'Tipos de Vínculo',
       'icon': Icons.assignment_ind_outlined,
       'description': 'Tipos de contratação e vínculos',
       'index': 3,
     },
     {
+      'id': 'turno',
       'title': 'Turnos de Trabalho',
       'icon': Icons.access_time_outlined,
       'description': 'Configure jornadas e horários',
       'index': 4,
     },
     {
+      'id': 'riscos',
       'title': 'Riscos Ocupacionais',
       'icon': Icons.warning_amber_outlined,
       'description': 'Classifique riscos por atividade',
@@ -141,38 +150,196 @@ class _OrganizationalStructurePageState extends State<OrganizationalStructurePag
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Row(
         children: [
-          _buildHeader(context),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSidebar(context),
-                  const SizedBox(width: 16),
-                  _buildMainContent(),
-                ],
-              ),
-            ),
-          ),
+          Expanded(flex: 2, child: _buildSelectionPanel()),
+          const VerticalDivider(width: 1),
+          Expanded(flex: 3, child: _buildConfigurationPanel()),
         ],
       ),
+      // Column(
+      //   children: [
+      //     _buildHeader(context),
+      //     const Divider(height: 1),
+      //     Expanded(
+      //       child: Padding(
+      //         padding: const EdgeInsets.all(16.0),
+      //         child: Row(
+      //           crossAxisAlignment: CrossAxisAlignment.start,
+      //           children: [
+      //             _buildSidebar(context),
+      //             const SizedBox(width: 16),
+      //             _buildMainContent(),
+      //           ],
+      //         ),
+      //       ),
+      //     ),
+      //   ],
+      // ),
+    );
+  }
+
+  Widget _buildSelectionPanel() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.08),
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12)),
+          ),
+          child: Row(
+            spacing: 16,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.account_tree_outlined,
+                  color: theme.colorScheme.onPrimaryContainer,
+                  size: 40,
+                ),
+              ),
+              Column(
+                spacing: 4,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Estrutura Organizacional',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.8,
+                      height: 1.1,
+                    ),
+                  ),
+                  Text(
+                    '${_sections.length} seções de gestão',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+            itemCount: _sections.length,
+            itemBuilder: (context, index) {
+              final section = _sections[index];
+              final isSelected = _selectedSection == index;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: OrganizationalTypeCard(
+                  icon: section['icon'],
+                  title: section['title'],
+                  description: section['description'],
+                  isSelected: isSelected,
+                  onTap: () => _onSectionSelected(index),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConfigurationPanel() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(12),
+            ),
+          ),
+          child: Row(
+            spacing: 16,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  _sections[_selectedSection]['icon'],
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  size: 40,
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  spacing: 4,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _sections[_selectedSection]['title'],
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.8,
+                            height: 1.1,
+                          ),
+                    ),
+                    Text(
+                      _sections[_selectedSection]['description'],
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: _getSectionWidget(_selectedSection),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            colorScheme.primary.withOpacity(0.08),
-            colorScheme.surface.withOpacity(0.6),
+            colorScheme.primary.withValues(alpha: 0.08),
+            colorScheme.surface.withValues(alpha: 0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -260,19 +427,21 @@ class _OrganizationalStructurePageState extends State<OrganizationalStructurePag
               title: Text(
                 section['title'],
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: _selectedSection == index 
-                      ? FontWeight.w600 
+                  fontWeight: _selectedSection == index
+                      ? FontWeight.w600
                       : FontWeight.normal,
                 ),
               ),
               subtitle: Text(
                 section['description'],
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
               ),
               selected: _selectedSection == index,
-              selectedTileColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              selectedTileColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.1),
               onTap: () => _onSectionSelected(index),
             );
           },

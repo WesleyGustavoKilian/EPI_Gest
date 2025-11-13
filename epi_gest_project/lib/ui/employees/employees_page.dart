@@ -392,6 +392,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
       body: Column(
         children: [
           _buildHeader(theme),
+          const Divider(height: 1),
           if (_showFilters)
             EmployeesFilters(
               appliedFilters: _appliedFilters,
@@ -450,6 +451,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            spacing: 16,
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -463,8 +465,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   size: 40,
                 ),
               ),
-              const SizedBox(width: 16),
               Column(
+                spacing: 4,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -475,7 +477,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
                       height: 1.1,
                     ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     '${_filteredEmployees.length} de ${_allEmployees.length} ${_allEmployees.length == 1 ? 'funcionário' : 'funcionários'}${_appliedFilters.isNotEmpty ? ' (filtrado)' : ''}',
                     style: theme.textTheme.bodyMedium?.copyWith(
