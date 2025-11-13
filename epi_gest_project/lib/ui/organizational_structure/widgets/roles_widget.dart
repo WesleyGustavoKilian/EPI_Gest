@@ -12,19 +12,16 @@ class RolesWidgetState extends State<RolesWidget> {
   final _formKey = GlobalKey<FormState>();
   final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
-  final _episController = TextEditingController();
 
   // LISTA DE CARGOS CADASTRADOS
   final List<Map<String, dynamic>> _cargosCadastrados = [
     {
       'codigo': 'CAR001',
       'descricao': 'Operador de Máquinas',
-      'epis': 'Capacete, Luva, Óculos, Botina',
     },
     {
       'codigo': 'CAR002',
       'descricao': 'Auxiliar de Produção',
-      'epis': 'Luva, Óculos, Botina',
     },
   ];
 
@@ -32,7 +29,6 @@ class RolesWidgetState extends State<RolesWidget> {
   void dispose() {
     _codigoController.dispose();
     _descricaoController.dispose();
-    _episController.dispose();
     super.dispose();
   }
 
@@ -89,17 +85,6 @@ class RolesWidgetState extends State<RolesWidget> {
               return null;
             },
           ),
-          const SizedBox(height: 16),
-          
-          TextFormField(
-            controller: _episController,
-            decoration: const InputDecoration(
-              labelText: 'EPIs Padrão Atribuídos',
-              hintText: 'Ex: Capacete, Luva, Óculos, Botina',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 2,
-          ),
         ],
       ),
     );
@@ -119,7 +104,6 @@ class RolesWidgetState extends State<RolesWidget> {
       final novoCargo = {
         'codigo': _codigoController.text,
         'descricao': _descricaoController.text,
-        'epis': _episController.text,
       };
       
       setState(() {
@@ -141,7 +125,6 @@ class RolesWidgetState extends State<RolesWidget> {
   void _limparCampos() {
     _codigoController.clear();
     _descricaoController.clear();
-    _episController.clear();
   }
 
   @override
@@ -149,21 +132,6 @@ class RolesWidgetState extends State<RolesWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Cargos / Funções',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Defina os cargos e funções dos colaboradores',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Colors.grey.shade600,
-          ),
-        ),
-        const SizedBox(height: 24),
-        
         if (_cargosCadastrados.isEmpty)
           _buildEmptyState()
         else
@@ -216,12 +184,9 @@ class RolesWidgetState extends State<RolesWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Código: ${cargo['codigo']}'),
-                if (cargo['epis'].isNotEmpty)
-                  Text('EPIs: ${cargo['epis']}'),
               ],
             ),
             onTap: () {
-              // TODO: Implementar edição
             },
           ),
         );

@@ -1,6 +1,7 @@
 import 'package:epi_gest_project/ui/organizational_structure/widgets/organizational_type_card.dart';
 import 'package:flutter/material.dart';
 import 'widgets/units_widget.dart';
+import 'widgets/epi_maping_widget.dart';
 import 'widgets/departments_widget.dart';
 import 'widgets/roles_widget.dart';
 import 'widgets/employment_types_widget.dart';
@@ -26,49 +27,50 @@ class _OrganizationalStructurePageState
   final GlobalKey<EmploymentTypesWidgetState> _employmentTypesKey = GlobalKey();
   final GlobalKey<ShiftsWidgetState> _shiftsKey = GlobalKey();
   final GlobalKey<RisksWidgetState> _risksKey = GlobalKey();
+  final GlobalKey<EpiMapingWidgetState> _epiMapingKey = GlobalKey();
 
   final List<Map<String, dynamic>> _sections = [
     {
-      'id': 'unidade',
       'title': 'Unidades (Matriz / Filial)',
       'icon': Icons.business_outlined,
       'description': 'Gerencie matriz e filiais da empresa',
       'index': 0,
     },
     {
-      'id': 'setor',
       'title': 'Setores / Departamentos',
       'icon': Icons.work_outline,
       'description': 'Configure departamentos e áreas',
       'index': 1,
     },
     {
-      'id': 'cargo',
       'title': 'Cargos / Funções',
       'icon': Icons.badge_outlined,
       'description': 'Defina cargos e responsabilidades',
       'index': 2,
     },
     {
-      'id': 'vinculo',
-      'title': 'Tipos de Vínculo',
-      'icon': Icons.assignment_ind_outlined,
-      'description': 'Tipos de contratação e vínculos',
-      'index': 3,
-    },
-    {
-      'id': 'turno',
-      'title': 'Turnos de Trabalho',
-      'icon': Icons.access_time_outlined,
-      'description': 'Configure jornadas e horários',
-      'index': 4,
-    },
-    {
-      'id': 'riscos',
       'title': 'Riscos Ocupacionais',
       'icon': Icons.warning_amber_outlined,
       'description': 'Classifique riscos por atividade',
+      'index': 3,
+    },
+    {
+      'title': 'Mapeamento de EPIs',
+      'icon': Icons.assignment_turned_in_outlined,
+      'description': 'Vincule EPIs a cargos, setores e riscos',
+      'index': 4,
+    },
+    {
+      'title': 'Tipos de Vínculo',
+      'icon': Icons.assignment_ind_outlined,
+      'description': 'Tipos de contratação e vínculos',
       'index': 5,
+    },
+    {
+      'title': 'Turnos de Trabalho',
+      'icon': Icons.access_time_outlined,
+      'description': 'Configure jornadas e horários',
+      'index': 6,
     },
   ];
 
@@ -87,22 +89,16 @@ class _OrganizationalStructurePageState
       case 2:
         return RolesWidget(key: _rolesKey);
       case 3:
-        return EmploymentTypesWidget(key: _employmentTypesKey);
-      case 4:
-        return ShiftsWidget(key: _shiftsKey);
-      case 5:
         return RisksWidget(key: _risksKey);
+      case 4:
+        return EpiMapingWidget(key: _epiMapingKey);
+      case 5:
+        return EmploymentTypesWidget(key: _employmentTypesKey);
+      case 6:
+        return ShiftsWidget(key: _shiftsKey);
       default:
         return const Center(child: Text('Seção não encontrada'));
     }
-  }
-
-  String _getSectionTitle(int index) {
-    return _sections[index]['title'];
-  }
-
-  IconData _getSectionIcon(int index) {
-    return _sections[index]['icon'];
   }
 
   String _getAddButtonText(int sectionIndex) {
@@ -114,11 +110,13 @@ class _OrganizationalStructurePageState
       case 2:
         return 'Novo Cargo';
       case 3:
-        return 'Novo Vínculo';
-      case 4:
-        return 'Novo Turno';
-      case 5:
         return 'Novo Risco';
+      case 4:
+        return 'Novo Mapeamento';
+      case 5:
+        return 'Novo Vínculo';
+      case 6:
+        return 'Novo Turno';
       default:
         return 'Adicionar';
     }
@@ -136,13 +134,15 @@ class _OrganizationalStructurePageState
         _rolesKey.currentState?.showAddDrawer();
         break;
       case 3:
-        _employmentTypesKey.currentState?.showAddDrawer();
+        _risksKey.currentState?.showAddDrawer();
         break;
       case 4:
-        _shiftsKey.currentState?.showAddDrawer();
+        _epiMapingKey.currentState?.showAddDrawer();
         break;
       case 5:
-        _risksKey.currentState?.showAddDrawer();
+        _employmentTypesKey.currentState?.showAddDrawer();
+      case 6:
+        _shiftsKey.currentState?.showAddDrawer();
         break;
     }
   }
@@ -183,7 +183,7 @@ class _OrganizationalStructurePageState
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.account_tree_outlined,
+                  Icons.account_tree,
                   color: theme.colorScheme.onPrimaryContainer,
                   size: 40,
                 ),

@@ -116,10 +116,17 @@ class _HomePageState extends State<HomePage> {
                       ),
                       label: const Text('Troca de EPIs'),
                     ),
-                    const NavigationRailDestination(
+                    NavigationRailDestination(
                       icon: Icon(Icons.account_tree_outlined),
                       selectedIcon: Icon(Icons.account_tree),
-                      label: Text('Estrutura Organizacional'),
+                      label: Column(
+                        spacing: 1,
+                        crossAxisAlignment: _isRailExtended ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+                        children: [
+                          Text('Estrutura'),
+                          Text('Organizacional'),
+                        ],
+                      ),
                     ),
                     const NavigationRailDestination(
                       icon: Icon(Icons.assessment_outlined),
