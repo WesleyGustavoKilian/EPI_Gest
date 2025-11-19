@@ -7,6 +7,7 @@ import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
+import 'dart:convert';
 
 class CostPerEpiChart extends StatefulWidget {
   const CostPerEpiChart({super.key});
@@ -29,11 +30,41 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
 
   void _initializeData() {
     _epiData = [
-      {'epi': 'Capacete', 'custo': 18300, 'cor': Colors.blue, 'quantidade': 150, 'custoUnitario': 122.00},
-      {'epi': 'Botas', 'custo': 12500, 'cor': Colors.green, 'quantidade': 200, 'custoUnitario': 62.50},
-      {'epi': 'Luvas', 'custo': 8500, 'cor': Colors.orange, 'quantidade': 500, 'custoUnitario': 17.00},
-      {'epi': 'Óculos', 'custo': 6200, 'cor': Colors.purple, 'quantidade': 310, 'custoUnitario': 20.00},
-      {'epi': 'Prot. Auditivo', 'custo': 4500, 'cor': Colors.red, 'quantidade': 180, 'custoUnitario': 25.00},
+      {
+        'epi': 'Capacete',
+        'custo': 18300,
+        'cor': Colors.blue.shade700,
+        'quantidade': 150,
+        'custoUnitario': 122.00,
+      },
+      {
+        'epi': 'Botas',
+        'custo': 12500,
+        'cor': Colors.green.shade700,
+        'quantidade': 200,
+        'custoUnitario': 62.50,
+      },
+      {
+        'epi': 'Luvas',
+        'custo': 8500,
+        'cor': Colors.orange.shade700,
+        'quantidade': 500,
+        'custoUnitario': 17.00,
+      },
+      {
+        'epi': 'Óculos',
+        'custo': 6200,
+        'cor': Colors.purple.shade700,
+        'quantidade': 310,
+        'custoUnitario': 20.00,
+      },
+      {
+        'epi': 'Prot. Auditivo',
+        'custo': 4500,
+        'cor': Colors.red.shade700,
+        'quantidade': 180,
+        'custoUnitario': 25.00,
+      },
     ];
     _sortDataByValue();
   }
@@ -58,277 +89,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     });
   }
 
-  Future<void> _exportToPdf() async {
-    setState(() {
-      _isExporting = true;
-    });
-
-    try {
-      final pdf = pw.Document();
-      final totalGeral = _epiData.fold(0, (sum, epi) => sum + (epi['custo'] as int));
-      
-      // Adicionar página ao PDF
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          build: (pw.Context context) {
-            return [
-              // Cabeçalho
-              pw.Header(
-                level: 0,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'Relatório de Custos de EPI',
-                      style: pw.TextStyle(
-                        fontSize: 24,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.SizedBox(height: 10),
-                    pw.Text(
-                      'Gerado em: ${DateTime.now().toString().split(' ')[0]}',
-                      style: pw.TextStyle(
-                        fontSize: 12,
-                        color: PdfColors.grey600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              pw.SizedBox(height: 20),
-              
-              // Resumo Geral
-              pw.Container(
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.blue400, width: 1),
-                  borderRadius: pw.BorderRadius.circular(8),
-                ),
-                padding: pw.EdgeInsets.all(15),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'RESUMO GERAL',
-                      style: pw.TextStyle(
-                        fontSize: 16,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.blue700,
-                      ),
-                    ),
-                    pw.SizedBox(height: 10),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text('Total Investido:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                            pw.Text(_formatarReal(totalGeral)),
-                          ],
-                        ),
-                        pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text('Quantidade de Itens:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                            pw.Text('${_epiData.length} tipos'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              
-              pw.SizedBox(height: 20),
-              
-              // Tabela Detalhada
-              pw.Text(
-                'DETALHAMENTO POR ITEM',
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              
-              pw.TableHelper.fromTextArray(
-                context: context,
-                headers: ['EPI', 'Custo Total (R\$)', 'Quantidade', 'Custo Unitário (R\$)'],
-                data: _epiData.map((epi) => [
-                  epi['epi'],
-                  _formatarReal(epi['custo']).replaceAll('R\$', '').trim(),
-                  epi['quantidade'].toString(),
-                  (epi['custoUnitario'] as double).toStringAsFixed(2),
-                ]).toList(),
-                border: pw.TableBorder.all(),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
-                cellStyle: pw.TextStyle(fontSize: 10),
-                headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
-                rowDecoration: pw.BoxDecoration(color: PdfColors.white),
-              ),
-              
-              pw.SizedBox(height: 20),
-              
-              // Análise
-              pw.Container(
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.green400, width: 1),
-                  borderRadius: pw.BorderRadius.circular(8),
-                ),
-                padding: pw.EdgeInsets.all(15),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'ANÁLISE E INSIGHTS',
-                      style: pw.TextStyle(
-                        fontSize: 16,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.green700,
-                      ),
-                    ),
-                    pw.SizedBox(height: 10),
-                    ..._generatePdfInsights(totalGeral),
-                  ],
-                ),
-              ),
-            ];
-          },
-        ),
-      );
-
-      // Salvar e abrir o PDF
-      final output = await getTemporaryDirectory();
-      final file = File('${output.path}/relatorio_epi_${DateTime.now().millisecondsSinceEpoch}.pdf');
-      await file.writeAsBytes(await pdf.save());
-      
-      await OpenFile.open(file.path);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('PDF exportado com sucesso!'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao exportar PDF: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } finally {
-      setState(() {
-        _isExporting = false;
-      });
-    }
-  }
-
-  List<pw.Widget> _generatePdfInsights(int totalGeral) {
-    final maiorCusto = _epiData.first;
-    final percentualMaiorCusto = (maiorCusto['custo'] / totalGeral * 100);
-    
-    return [
-      pw.Text('• ${maiorCusto['epi']} representa ${percentualMaiorCusto.toStringAsFixed(1)}% do investimento total'),
-      pw.SizedBox(height: 5),
-      pw.Text('• Custo unitário mais alto: Capacete (R\$${maiorCusto['custoUnitario']})'),
-      pw.SizedBox(height: 5),
-      pw.Text('• Os 2 itens mais caros representam mais de 60% do total'),
-      pw.SizedBox(height: 5),
-      pw.Text('• Recomendação: Avaliar compra em maior quantidade para redução de custos'),
-    ];
-  }
-
-  Future<void> _exportToExcel() async {
-  setState(() {
-    _isExporting = true;
-  });
-
-  try {
-    final totalGeral = _epiData.fold(0, (sum, epi) => sum + (epi['custo'] as int));
-    
-    // Cabeçalhos - REMOVENDO ACENTOS para compatibilidade
-    List<List<dynamic>> csvData = [];
-    csvData.add(['RELATORIO DE CUSTOS DE EPI']);
-    csvData.add(['Gerado em:', '${DateTime.now().toString().split(' ')[0]}']);
-    csvData.add([]);
-    csvData.add(['RESUMO GERAL']);
-    csvData.add(['Total Investido:', 'R\$ ${_formatarExcelTotal(totalGeral)}']);
-    csvData.add(['Quantidade de Itens:', '${_epiData.length} tipos']);
-    csvData.add([]);
-    
-    // Tabela detalhada
-    csvData.add(['DETALHAMENTO POR ITEM']);
-    csvData.add(['EPI', 'Custo Total (R\$)', 'Quantidade', 'Custo Unitario (R\$)', '% do Total']);
-    
-    for (var epi in _epiData) {
-      final percentage = (epi['custo'] / totalGeral * 100);
-      csvData.add([
-        epi['epi'],
-        'R\$ ${_formatarExcelValor(epi['custo'])}',
-        epi['quantidade'],
-        'R\$ ${(epi['custoUnitario'] as double).toStringAsFixed(2)}',
-        '${percentage.toStringAsFixed(1)}%',
-      ]);
-    }
-    
-    csvData.add([]);
-    csvData.add(['ANALISE E INSIGHTS']);
-    
-    final maiorCusto = _epiData.first;
-    final percentualMaiorCusto = (maiorCusto['custo'] / totalGeral * 100);
-    
-    csvData.add(['Maior Investimento:', '${maiorCusto['epi']} (${percentualMaiorCusto.toStringAsFixed(1)}%)']);
-    csvData.add(['Custo Unitario Mais Alto:', 'Capacete - R\$${maiorCusto['custoUnitario']}']);
-    csvData.add(['Recomendacao:', 'Avaliar compra em maior quantidade para reducao de custos']);
-    
-    // Converter para CSV
-    String csv = const ListToCsvConverter().convert(csvData);
-    
-    // ⚠️⚠️⚠️ MUDANÇA CRÍTICA AQUI ⚠️⚠️⚠️
-    // Salvar como .csv (NÃO como .xlsx)
-    final output = await getTemporaryDirectory();
-    final file = File('${output.path}/relatorio_epi_${DateTime.now().millisecondsSinceEpoch}.csv'); // <- .csv aqui!
-    await file.writeAsString(csv);
-    
-    await OpenFile.open(file.path);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Excel/CSV exportado com sucesso!'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-    
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Erro ao exportar Excel: $e'),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  } finally {
-    setState(() {
-      _isExporting = false;
-    });
-  }
-}
-
-  String _formatarExcelTotal(int valor) {
-    return '${(valor / 1000).toStringAsFixed(0)}k';
-  }
-
-  String _formatarExcelValor(int valor) {
-    return '${(valor / 1000).toStringAsFixed(1)}k';
-  }
+  // ========== ANÁLISE DETALHADA COMPLETA ==========
   void _showDetailedAnalysis() {
     final totalGeral = _epiData.fold(0, (sum, epi) => sum + (epi['custo'] as int));
     
@@ -354,11 +115,11 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
       ),
       child: Column(
         children: [
-          // Header
+          // Header melhorado
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainer,
+              color: colorScheme.primaryContainer.withOpacity(0.1),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
@@ -366,14 +127,29 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Análise Detalhada - EPIs',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Análise Detalhada - Custos de EPI',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Visão completa dos investimentos em equipamentos de proteção',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(Icons.close, color: colorScheme.onSurfaceVariant),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -386,23 +162,13 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Resumo Geral
-                  _buildSummaryCard(theme, colorScheme, totalGeral),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Gráfico de Pizza
-                  _buildPieChart(theme, colorScheme, totalGeral),
+                  // Resumo Geral Melhorado
+                  _buildEnhancedSummaryCard(theme, colorScheme, totalGeral),
                   
                   const SizedBox(height: 24),
                   
                   // Tabela Detalhada
                   _buildDetailedTable(theme, colorScheme, totalGeral),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Insights
-                  _buildInsightsCard(theme, colorScheme, totalGeral),
                 ],
               ),
             ),
@@ -412,184 +178,109 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
-  Widget _buildSummaryCard(ThemeData theme, ColorScheme colorScheme, int totalGeral) {
+  Widget _buildEnhancedSummaryCard(ThemeData theme, ColorScheme colorScheme, int totalGeral) {
     final maiorCusto = _epiData.first;
     final menorCusto = _epiData.last;
-    
+    final mediaCusto = _epiData.fold(0.0, (sum, epi) => sum + (epi['custo'] as int)) / _epiData.length;
+    final percentualMaiorCusto = (maiorCusto['custo'] / totalGeral * 100);
+
     return Card(
-      elevation: 0,
-      color: colorScheme.primaryContainer.withAlpha(30),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Resumo Geral',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
+            // Header do card
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Resumo Executivo',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+
+            // Métricas principais
             Row(
               children: [
                 Expanded(
-                  child: _buildSummaryItem(
+                  child: _buildMetricCard(
                     theme,
+                    colorScheme,
                     'Total Investido',
                     _formatarReal(totalGeral),
                     Icons.attach_money,
                     colorScheme.primary,
                   ),
                 ),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: _buildSummaryItem(
+                  child: _buildMetricCard(
                     theme,
-                    'Itens Diferentes',
-                    '${_epiData.length} tipos',
-                    Icons.category,
+                    colorScheme,
+                    'Itens Analisados',
+                    '${_epiData.length}',
+                    Icons.inventory_2,
                     Colors.green,
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryItem(
-                    theme,
-                    'Maior Custo',
-                    '${maiorCusto['epi']}\n${_formatarReal(maiorCusto['custo'])}',
-                    Icons.arrow_upward,
-                    Colors.red,
-                  ),
-                ),
-                Expanded(
-                  child: _buildSummaryItem(
-                    theme,
-                    'Menor Custo',
-                    '${menorCusto['epi']}\n${_formatarReal(menorCusto['custo'])}',
-                    Icons.arrow_downward,
-                    Colors.green,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryItem(ThemeData theme, String title, String value, IconData icon, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 4),
-            Text(
-              title,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-          maxLines: 2,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPieChart(ThemeData theme, ColorScheme colorScheme, int totalGeral) {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Distribuição por Percentual',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: Row(
+
+            // Destaques
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 2,
-                    child: PieChart(
-                      PieChartData(
-                        sections: _epiData.map((epi) {
-                          final percentage = (epi['custo'] / totalGeral * 100);
-                          return PieChartSectionData(
-                            color: epi['cor'],
-                            value: percentage,
-                            title: '${percentage.toStringAsFixed(1)}%',
-                            radius: 60,
-                            titleStyle: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                            ),
-                          );
-                        }).toList(),
-                        sectionsSpace: 2,
-                        centerSpaceRadius: 40,
-                      ),
+                  Text(
+                    'Destaques',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: _epiData.map((epi) {
-                        final percentage = (epi['custo'] / totalGeral * 100);
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: epi['cor'],
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  epi['epi'],
-                                  style: theme.textTheme.bodySmall,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                '${percentage.toStringAsFixed(1)}%',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                  const SizedBox(height: 12),
+                  _buildHighlightItem(
+                    '🎯 Maior Investimento',
+                    '${maiorCusto['epi']} - ${_formatarReal(maiorCusto['custo'])} (${percentualMaiorCusto.toStringAsFixed(1)}% do total)',
+                    colorScheme.primary,
+                  ),
+                  _buildHighlightItem(
+                    '📊 Média por Item',
+                    _formatarReal(mediaCusto.toInt()),
+                    Colors.blue,
+                  ),
+                  _buildHighlightItem(
+                    '💰 Custo Unitário Mais Alto',
+                    'Capacete - R\$${maiorCusto['custoUnitario']}',
+                    Colors.orange,
                   ),
                 ],
               ),
@@ -600,19 +291,138 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
+  Widget _buildMetricCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 18, color: color),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighlightItem(String title, String value, Color color) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            margin: const EdgeInsets.only(top: 6),
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDetailedTable(ThemeData theme, ColorScheme colorScheme, int totalGeral) {
     return Card(
-      elevation: 0,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Detalhamento por Item',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Detalhamento por Item',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             SingleChildScrollView(
@@ -621,6 +431,9 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                 columnSpacing: 20,
                 dataRowMinHeight: 40,
                 dataRowMaxHeight: 60,
+                headingRowColor: MaterialStateProperty.all(
+                  colorScheme.primaryContainer.withOpacity(0.1),
+                ),
                 columns: [
                   DataColumn(
                     label: Text('EPI', style: theme.textTheme.bodySmall?.copyWith(
@@ -683,88 +496,115 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
-  Widget _buildInsightsCard(ThemeData theme, ColorScheme colorScheme, int totalGeral) {
-    final maiorCusto = _epiData.first;
-    final menorCusto = _epiData.last;
-    
-    final mediaCusto = _epiData.fold(0.0, (sum, epi) => sum + (epi['custo'] as int)) / _epiData.length;
-    final percentualMaiorCusto = (maiorCusto['custo'] / totalGeral * 100);
-    
-    return Card(
-      elevation: 0,
-      color: colorScheme.surfaceContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.insights, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Insights e Recomendações',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildInsightItem(
-              theme,
-              '🔍 Maior Investimento',
-              '${maiorCusto['epi']} representa ${percentualMaiorCusto.toStringAsFixed(1)}% do total',
-            ),
-            _buildInsightItem(
-              theme,
-              '💰 Custo Unitário',
-              'Capacete tem o maior custo individual (R\$${maiorCusto['custoUnitario']})',
-            ),
-            _buildInsightItem(
-              theme,
-              '📊 Distribuição',
-              'Os 2 itens mais caros representam mais de 60% do investimento total',
-            ),
-            _buildInsightItem(
-              theme,
-              '📈 Média de Custo',
-              'Custo médio por tipo de EPI: R\$${mediaCusto.toStringAsFixed(2)}',
-            ),
-            _buildInsightItem(
-              theme,
-              '💡 Recomendação',
-              'Avaliar possibilidade de compra em maior quantidade para reduzir custos unitários',
-            ),
-          ],
+  // ========== EXPORT PDF - MELHORADO ==========
+  Future<void> _exportToPdf() async {
+    setState(() {
+      _isExporting = true;
+    });
+
+    try {
+      final pdf = pw.Document();
+      final totalGeral = _epiData.fold(
+        0,
+        (sum, epi) => sum + (epi['custo'] as int),
+      );
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          theme: pw.ThemeData.withFont(base: await _getPdfFont()),
+          build: (pw.Context context) {
+            return [
+              // Cabeçalho moderno
+              _buildPdfHeader(totalGeral),
+              pw.SizedBox(height: 20),
+
+              // Cards de resumo
+              _buildPdfSummaryCards(totalGeral),
+              pw.SizedBox(height: 25),
+
+              // Tabela melhorada
+              _buildPdfTable(totalGeral),
+            ];
+          },
         ),
-      ),
-    );
+      );
+
+      final output = await getTemporaryDirectory();
+      final file = File(
+        '${output.path}/relatorio_epi_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      );
+      await file.writeAsBytes(await pdf.save());
+
+      await OpenFile.open(file.path);
+
+      _showSnackBar('PDF exportado com sucesso!', Colors.green);
+    } catch (e) {
+      _showSnackBar('Erro ao exportar PDF: $e', Colors.red);
+    } finally {
+      setState(() {
+        _isExporting = false;
+      });
+    }
   }
 
-  Widget _buildInsightItem(ThemeData theme, String title, String description) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  pw.Widget _buildPdfHeader(int totalGeral) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        color: PdfColors.blue50,
+        borderRadius: pw.BorderRadius.circular(12),
+      ),
+      padding: pw.EdgeInsets.all(25),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          pw.Container(
+            width: 4,
+            height: 60,
+            decoration: pw.BoxDecoration(
+              color: PdfColors.blue700,
+              borderRadius: pw.BorderRadius.circular(2),
+            ),
+          ),
+          pw.SizedBox(width: 20),
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                pw.Text(
+                  'Relatório de Custos de EPI',
+                  style: pw.TextStyle(
+                    fontSize: 22,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.blue900,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: theme.textTheme.bodySmall,
+                pw.SizedBox(height: 5),
+                pw.Text(
+                  'Análise detalhada dos investimentos em equipamentos de proteção individual',
+                  style: pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text(
+                  'Gerado em: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year} às ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
                 ),
               ],
+            ),
+          ),
+          pw.Container(
+            padding: pw.EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.blue700,
+              borderRadius: pw.BorderRadius.circular(20),
+            ),
+            child: pw.Text(
+              _formatarReal(totalGeral),
+              style: pw.TextStyle(
+                color: PdfColors.white,
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
           ),
         ],
@@ -772,6 +612,207 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
+  pw.Widget _buildPdfSummaryCards(int totalGeral) {
+    final maiorCusto = _epiData.first;
+    final menorCusto = _epiData.last;
+
+    return pw.Row(
+      children: [
+        _buildPdfSummaryCard(
+          'Total Investido',
+          _formatarReal(totalGeral),
+          PdfColors.blue700,
+          Icons.attach_money,
+        ),
+        pw.SizedBox(width: 12),
+        _buildPdfSummaryCard(
+          'Itens Analisados',
+          '${_epiData.length} tipos',
+          PdfColors.green700,
+          Icons.inventory_2,
+        ),
+        pw.SizedBox(width: 12),
+        _buildPdfSummaryCard(
+          'Maior Custo',
+          '${maiorCusto['epi']}',
+          PdfColors.orange700,
+          Icons.trending_up,
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildPdfSummaryCard(
+    String title,
+    String value,
+    PdfColor color,
+    IconData icon,
+  ) {
+    return pw.Expanded(
+      child: pw.Container(
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          borderRadius: pw.BorderRadius.circular(10),
+          border: pw.Border.all(color: PdfColors.grey300, width: 1),
+        ),
+        padding: pw.EdgeInsets.all(16),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              title,
+              style: pw.TextStyle(
+                fontSize: 10,
+                color: PdfColors.grey600,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              value,
+              style: pw.TextStyle(
+                fontSize: 14,
+                color: color,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfTable(int totalGeral) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          'Detalhamento por Item',
+          style: pw.TextStyle(
+            fontSize: 16,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.blue900,
+          ),
+        ),
+        pw.SizedBox(height: 12),
+        pw.TableHelper.fromTextArray(
+          context: null,
+          headers: [
+            'EPI',
+            'Custo Total',
+            'Quantidade',
+            'Custo Unitário',
+            '% do Total',
+          ],
+          data: _epiData.map((epi) {
+            final percentage = (epi['custo'] / totalGeral * 100);
+            return [
+              epi['epi'],
+              _formatarReal(epi['custo']).replaceAll('R\$', '').trim(),
+              epi['quantidade'].toString(),
+              'R\$${(epi['custoUnitario'] as double).toStringAsFixed(2)}',
+              '${percentage.toStringAsFixed(1)}%',
+            ];
+          }).toList(),
+          border: pw.TableBorder(
+            left: pw.BorderSide(color: PdfColors.grey300),
+            top: pw.BorderSide(color: PdfColors.grey300),
+            right: pw.BorderSide(color: PdfColors.grey300),
+            bottom: pw.BorderSide(color: PdfColors.grey300),
+            horizontalInside: pw.BorderSide(color: PdfColors.grey300),
+            verticalInside: pw.BorderSide(color: PdfColors.grey300),
+          ),
+          headerStyle: pw.TextStyle(
+            fontWeight: pw.FontWeight.bold,
+            fontSize: 10,
+            color: PdfColors.white,
+          ),
+          headerDecoration: pw.BoxDecoration(color: PdfColors.blue700),
+          cellStyle: pw.TextStyle(fontSize: 9),
+          cellAlignments: {
+            0: pw.Alignment.centerLeft,
+            1: pw.Alignment.centerRight,
+            2: pw.Alignment.center,
+            3: pw.Alignment.centerRight,
+            4: pw.Alignment.center,
+          },
+          rowDecoration: pw.BoxDecoration(
+            color: PdfColors.white,
+            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey100)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<pw.Font> _getPdfFont() async {
+    return pw.Font.courier();
+  }
+
+  // ========== EXPORT EXCEL SEM ACENTOS ==========
+  Future<void> _exportToExcel() async {
+    setState(() {
+      _isExporting = true;
+    });
+
+    try {
+      final totalGeral = _epiData.fold(0, (sum, epi) => sum + (epi['custo'] as int));
+
+      List<List<dynamic>> csvData = [];
+
+      // Cabeçalho SEM ACENTOS
+      csvData.add(['RELATORIO DE CUSTOS DE EPI']);
+      csvData.add(['Gerado em:', '${DateTime.now().toString().split(' ')[0]}']);
+      csvData.add([]);
+      csvData.add(['RESUMO GERAL']);
+      csvData.add(['Total Investido:', '${_formatarReal(totalGeral)}']);
+      csvData.add(['Quantidade de Itens:', '${_epiData.length} tipos']);
+      csvData.add([]);
+
+      // Tabela detalhada SEM ACENTOS
+      csvData.add(['DETALHAMENTO POR ITEM']);
+      csvData.add(['EPI', 'Custo Total (R\$)', 'Quantidade', 'Custo Unitario (R\$)', '% do Total']);
+
+      for (var epi in _epiData) {
+        final percentage = (epi['custo'] / totalGeral * 100);
+        csvData.add([
+          epi['epi'],
+          _formatarReal(epi['custo']).replaceAll('R\$', '').trim(),
+          epi['quantidade'].toString(),
+          (epi['custoUnitario'] as double).toStringAsFixed(2),
+          '${percentage.toStringAsFixed(1)}%',
+        ]);
+      }
+
+      csvData.add([]);
+      csvData.add(['ANALISE E INSIGHTS']);
+
+      final maiorCusto = _epiData.first;
+      final percentualMaiorCusto = (maiorCusto['custo'] / totalGeral * 100);
+
+      csvData.add(['Maior Investimento:', '${maiorCusto['epi']} (${percentualMaiorCusto.toStringAsFixed(1)}%)']);
+      csvData.add(['Custo Unitario Mais Alto:', 'Capacete - R\$${maiorCusto['custoUnitario']}']);
+      csvData.add(['Recomendacao:', 'Avaliar compra em maior quantidade para reducao de custos']);
+
+      String csv = const ListToCsvConverter().convert(csvData);
+
+      final output = await getTemporaryDirectory();
+      final file = File('${output.path}/relatorio_epi_${DateTime.now().millisecondsSinceEpoch}.csv');
+      await file.writeAsString(csv);
+
+      await OpenFile.open(file.path);
+
+      _showSnackBar('Excel/CSV exportado com sucesso!', Colors.green);
+    } catch (e) {
+      _showSnackBar('Erro ao exportar Excel: $e', Colors.red);
+    } finally {
+      setState(() {
+        _isExporting = false;
+      });
+    }
+  }
+
+  // ========== MENU TRADICIONAL ==========
   void _showMenuActions() {
     if (_isExporting) return;
 
@@ -891,11 +932,17 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     }
   }
 
+  // ========== INTERFACE PRINCIPAL ==========
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    return _buildMainContent(theme, colorScheme);
+  }
+
+  Widget _buildMainContent(ThemeData theme, ColorScheme colorScheme) {
+    final totalGeral = _epiData.fold(0, (sum, epi) => sum + (epi['custo'] as int));
     final double maxCost = 20000;
 
     return Stack(
@@ -951,7 +998,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
 
                 const SizedBox(height: 32),
 
-                // Gráfico de Barras com valores fixos
+                // Gráfico de Barras SEM tooltips e SEM ícones
                 SizedBox(
                   height: 320,
                   child: Stack(
@@ -961,6 +1008,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                         BarChartData(
                           alignment: BarChartAlignment.spaceAround,
                           maxY: maxCost * 1.15,
+                          // TOOLTIPS DESATIVADOS
                           barTouchData: BarTouchData(
                             enabled: false,
                           ),
@@ -973,6 +1021,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                                 getTitlesWidget: (value, meta) {
                                   if (value >= 0 && value < _epiData.length) {
                                     final epi = _epiData[value.toInt()];
+                                    // SEM ÍCONES - SÓ TEXTO
                                     return SideTitleWidget(
                                       axisSide: meta.axisSide,
                                       space: 4,
@@ -998,8 +1047,9 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                                 interval: 5000,
                                 getTitlesWidget: (value, meta) {
                                   if (value % 5000 == 0) {
+                                    // VALORES EM REAIS COMPLETOS (SEM K)
                                     return Text(
-                                      'R\$ ${(value / 1000).toStringAsFixed(0)}k',
+                                      _formatarReal(value.toInt()),
                                       style: theme.textTheme.bodySmall?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
@@ -1123,7 +1173,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                         ),
                       ),
                       Text(
-                        _formatarReal(_epiData.fold(0, (sum, epi) => sum + (epi['custo'] as int))),
+                        _formatarReal(totalGeral),
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.primary,
@@ -1163,11 +1213,23 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
-  // Função para formatar em Real brasileiro
+  // Função para formatar em Real brasileiro COMPLETO (sem K)
   String _formatarReal(int valor) {
     return 'R\$${valor.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
     )},00';
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 }
