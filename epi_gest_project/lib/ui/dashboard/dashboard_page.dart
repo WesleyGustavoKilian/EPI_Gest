@@ -3,7 +3,6 @@ import 'widgets/status_card.dart';
 import 'widgets/cost_charts/cost_per_epi_chart.dart';
 import 'widgets/cost_charts/cost_per_sector_chart.dart';
 import 'widgets/conformity_selector/conformity_selector_chart.dart';
-import 'widgets/top_employees_chart.dart';
 import 'widgets/epi_durability_chart.dart';
 import 'widgets/critical_stock_widget.dart';
 import 'widgets/top_reasons_table.dart';
@@ -169,11 +168,8 @@ class DashboardPage extends StatelessWidget {
   Widget _buildResponsiveGrid(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMedium = constraints.maxWidth > 800;
-
         return Column(
           children: [
-            /// LINHA 1: STATUS + CONFORMIDADE
             Column(
               children: [
                 _animatedEnhanced(
@@ -198,7 +194,6 @@ class DashboardPage extends StatelessWidget {
               ],
             ),
 
-            /// LINHA 2: ANÁLISE DE CUSTOS
             _animatedEnhanced(
               PremiumSection(
                 title: 'Análise de Custos',
@@ -209,62 +204,16 @@ class DashboardPage extends StatelessWidget {
               delay: 200,
             ),
 
-            /// LINHA 3: COLABORADORES + DURABILIDADE
-            if (isMedium)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _animatedEnhanced(
-                      PremiumSection(
-                        title: 'Top Colaboradores',
-                        subtitle: 'Desempenho e conformidade individual',
-                        icon: Icons.people_alt_rounded,
-                        child: TopEmployeesChart(),
-                      ),
-                      delay: 300,
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: _animatedEnhanced(
-                      PremiumSection(
-                        title: 'Durabilidade EPI',
-                        subtitle: 'Vida útil e tempo de reposição',
-                        icon: Icons.timeline_rounded,
-                        child: EpiDurabilityChart(),
-                      ),
-                      delay: 400,
-                    ),
-                  ),
-                ],
-              )
-            else
-              Column(
-                children: [
-                  _animatedEnhanced(
-                    PremiumSection(
-                      title: 'Top Colaboradores',
-                      subtitle: 'Desempenho e conformidade individual',
-                      icon: Icons.people_alt_rounded,
-                      child: TopEmployeesChart(),
-                    ),
-                    delay: 300,
-                  ),
-                  const SizedBox(height: 32),
-                  _animatedEnhanced(
-                    PremiumSection(
-                      title: 'Durabilidade EPI',
-                      subtitle: 'Vida útil e tempo de reposição',
-                      icon: Icons.timeline_rounded,
-                      child: EpiDurabilityChart(),
-                    ),
-                    delay: 400,
-                  ),
-                ],
+            _animatedEnhanced(
+              PremiumSection(
+                title: 'Durabilidade EPI',
+                subtitle: 'Vida útil e tempo de reposição',
+                icon: Icons.timeline_rounded,
+                child: EpiDurabilityChart(),
               ),
+              delay: 300,
+            ),
 
-            /// LINHA 4: MONITORAMENTO DE RISCOS
             _animatedEnhanced(
               PremiumSection(
                 title: 'Monitoramento de Riscos',
@@ -272,10 +221,9 @@ class DashboardPage extends StatelessWidget {
                 icon: Icons.warning_amber_rounded,
                 child: _buildRiskAreaEnhanced(context),
               ),
-              delay: 500,
+              delay: 400,
             ),
 
-            /// LINHA 5: ATIVIDADES RECENTES
             _animatedEnhanced(
               PremiumSection(
                 title: 'Atividades Recentes',
@@ -283,17 +231,13 @@ class DashboardPage extends StatelessWidget {
                 icon: Icons.history_rounded,
                 child: const RecentActivitiesWidget(),
               ),
-              delay: 600,
+              delay: 500,
             ),
           ],
         );
       },
     );
   }
-
-  // =====================================================
-  // SEÇÕES ESPECÍFICAS APRIMORADAS
-  // =====================================================
 
   Widget _buildStatusSectionEnhanced(BuildContext context) {
     return LayoutBuilder(
@@ -388,9 +332,6 @@ class DashboardPage extends StatelessWidget {
     ],
   );
 
-  // =====================================================
-  // ANIMAÇÃO DE ENTRADA SOFISTICADA
-  // =====================================================
   Widget _animatedEnhanced(Widget child, {int delay = 0}) {
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + delay),
@@ -499,7 +440,6 @@ class PremiumSection extends StatelessWidget {
             ),
           ),
     
-          /// CONTEÚDO COM ELEVAÇÃO SUTIL
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
