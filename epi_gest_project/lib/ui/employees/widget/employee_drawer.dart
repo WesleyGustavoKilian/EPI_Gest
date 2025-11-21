@@ -146,7 +146,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _controllers['gestor']!.text = employee.gestor ?? '';
     _controllers['localTrabalho']!.text = employee.localTrabalho ?? '';
     _controllers['turno']!.text = employee.turno ?? '';
-    _controllers['dataEntrada']!.text = DateFormat('dd/MM/yyyy').format(employee.dataEntrada);
+    _controllers['dataEntrada']!.text = DateFormat(
+      'dd/MM/yyyy',
+    ).format(employee.dataEntrada);
     _controllers['dataDesligamento']!.text = employee.dataDesligamento != null
         ? DateFormat('dd/MM/yyyy').format(employee.dataDesligamento!)
         : '';
@@ -900,10 +902,12 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       spacing: 24,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // COLUNA ESQUERDA - IMAGEM + HIERARQUIA + CONTATO
         Expanded(
           child: Column(
             spacing: 32,
             children: [
+              // IMAGEM NO TOPO ESQUERDO (MANTÉM NO MESMO LUGAR)
               ImagePickerWidget(
                 imageFile: _imageFile,
                 imageUrl: _imagemPath,
@@ -911,18 +915,18 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 onImageRemoved: _onImageRemoved,
                 viewOnly: _isViewing,
               ),
-              // INFORMAÇÕES BÁSICAS AGORA NO LADO ESQUERDO (ORDEM LÓGICA)
+              // HIERARQUIA ABAIXO DA IMAGEM
               InfoSection(
-                title: 'Informações Básicas',
-                icon: Icons.info_outlined,
-                child: BasicInfoSection(
-                  matriculaController: _controllers['matricula']!,
-                  nomeController: _controllers['nome']!,
-                  dataEntradaController: _controllers['dataEntrada']!,
-                  onSelectDateEntrada: _selectDateEntrada,
+                title: 'Hierarquia',
+                icon: Icons.people_outline,
+                child: HierarchySection(
+                  liderController: _controllers['lider']!,
+                  gestorController: _controllers['gestor']!,
+                  funcionariosSugeridos: _suggestions['funcionarios']!,
                   enabled: isEnabled,
                 ),
               ),
+              // CONTATO ABAIXO DA HIERARQUIA
               InfoSection(
                 title: 'Contato',
                 icon: Icons.contact_phone_outlined,
@@ -935,21 +939,25 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
             ],
           ),
         ),
+
+        // COLUNA DIREITA - INFORMAÇÕES BÁSICAS + CONDIÇÕES DE TRABALHO + STATUS
         Expanded(
           child: Column(
             spacing: 32,
             children: [
-              // HIERARQUIA AGORA NO LADO DIREITO (DEPOIS DAS INFORMAÇÕES BÁSICAS)
+              // INFORMAÇÕES BÁSICAS AGORA NO TOPO DIREITO
               InfoSection(
-                title: 'Hierarquia',
-                icon: Icons.people_outline,
-                child: HierarchySection(
-                  liderController: _controllers['lider']!,
-                  gestorController: _controllers['gestor']!,
-                  funcionariosSugeridos: _suggestions['funcionarios']!,
+                title: 'Informações Básicas',
+                icon: Icons.info_outlined,
+                child: BasicInfoSection(
+                  matriculaController: _controllers['matricula']!,
+                  nomeController: _controllers['nome']!,
+                  dataEntradaController: _controllers['dataEntrada']!,
+                  onSelectDateEntrada: _selectDateEntrada,
                   enabled: isEnabled,
                 ),
               ),
+              // MANTÉM AS CONDIÇÕES DE TRABALHO NO MESMO LUGAR
               InfoSection(
                 title: 'Condições de Trabalho',
                 icon: Icons.settings_outlined,
@@ -965,6 +973,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   onAddTurno: _showTurnoTrabalhoModal,
                 ),
               ),
+              // MANTÉM STATUS NO MESMO LUGAR
               InfoSection(
                 title: 'Status',
                 icon: Icons.info_outlined,
