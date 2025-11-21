@@ -4,7 +4,7 @@ class EpiModel extends AppWriteModel {
   final String ca;
   final String nomeProduto;
   final DateTime validadeCa;
-  final DateTime validadeProduto;
+  final DateTime periodicidade;
   final double estoque;
   final double valor;
   final String marcaId;
@@ -18,7 +18,7 @@ class EpiModel extends AppWriteModel {
     required this.ca,
     required this.nomeProduto,
     required this.validadeCa,
-    required this.validadeProduto,
+    required this.periodicidade,
     required this.estoque,
     required this.valor,
     required this.marcaId,
@@ -34,7 +34,7 @@ class EpiModel extends AppWriteModel {
       ca: map['ca'] ?? '',
       nomeProduto: map['nome_produto'] ?? '',
       validadeCa: DateTime.parse(map['validade_ca']),
-      validadeProduto: DateTime.parse(map['validade_produto']),
+      periodicidade: map['periodicidade'] ?? 0,
       estoque: (map['estoque'] ?? 0).toDouble(),
       valor: (map['valor'] ?? 0).toDouble(),
       marcaId: map['marca_id'] ?? '',
@@ -51,7 +51,7 @@ class EpiModel extends AppWriteModel {
       'ca': ca,
       'nome_produto': nomeProduto,
       'validade_ca': validadeCa.toIso8601String(),
-      'validade_produto': validadeProduto.toIso8601String(),
+      'periodicidade': periodicidade,
       'estoque': estoque,
       'valor': valor,
       'marca_id': marcaId,

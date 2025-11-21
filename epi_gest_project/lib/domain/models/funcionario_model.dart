@@ -6,7 +6,6 @@ class FuncionarioModel extends AppWriteModel {
   final DateTime dataEntrada;
   final String email;
   final String telefone;
-  final String unidadeId;
   final String turnoId;
   final String vinculoId;
   final String lider;
@@ -24,7 +23,6 @@ class FuncionarioModel extends AppWriteModel {
     required this.dataEntrada,
     required this.telefone,
     required this.email,
-    required this.unidadeId,
     required this.turnoId,
     required this.vinculoId,
     required this.lider,
@@ -46,7 +44,6 @@ class FuncionarioModel extends AppWriteModel {
       dataEntrada: DateTime.parse(map['data_entrada']),
       telefone: map['telefone'] ?? '',
       email: map['email'] ?? '',
-      unidadeId: map['local_trabalho_id'] ?? '',
       turnoId: map['turno_id'] ?? '',
       vinculoId: map['vinculo_id'] ?? '',
       lider: map['lider'] ?? '',
@@ -69,7 +66,6 @@ class FuncionarioModel extends AppWriteModel {
       'data_entrada': dataEntrada.toIso8601String(),
       'telefone': telefone,
       'email': email,
-      'local_trabalho_id': unidadeId,
       'turno_id': turnoId,
       'vinculo_id': vinculoId,
       'lider': lider,
