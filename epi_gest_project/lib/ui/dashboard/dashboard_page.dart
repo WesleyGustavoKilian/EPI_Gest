@@ -7,7 +7,6 @@ import 'widgets/epi_durability_chart.dart';
 import 'widgets/critical_stock_widget.dart';
 import 'widgets/top_reasons_table.dart';
 import 'widgets/quick_actions_widget.dart';
-import 'widgets/recent_activities_widget.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -24,10 +23,8 @@ class DashboardPage extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 8),
-
                 _buildQuickActionsEnhanced(context),
                 const SizedBox(height: 40),
-
                 _buildResponsiveGrid(context),
               ],
             ),
@@ -52,7 +49,7 @@ class DashboardPage extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topRight: Radius.circular(12),
           topLeft: Radius.circular(12),
         ),
@@ -214,22 +211,24 @@ class DashboardPage extends StatelessWidget {
               delay: 300,
             ),
 
+            // NOVA SEÇÃO: MOTIVOS DA TROCA ANTECIPADA
             _animatedEnhanced(
               PremiumSection(
-                title: 'Monitoramento de Riscos',
-                subtitle: 'Estoque crítico e principais ocorrências',
-                icon: Icons.warning_amber_rounded,
-                child: _buildRiskAreaEnhanced(context),
+                title: 'Motivos da Troca Antecipada',
+                subtitle: 'Principais ocorrências que levam à reposição',
+                icon: Icons.analytics_rounded,
+                child: TopReasonsTable(),
               ),
               delay: 400,
             ),
 
+            // SEÇÃO: MONITORAMENTO DE RISCOS (ESTOQUE)
             _animatedEnhanced(
               PremiumSection(
-                title: 'Atividades Recentes',
-                subtitle: 'Últimas movimentações do sistema',
-                icon: Icons.history_rounded,
-                child: const RecentActivitiesWidget(),
+                title: 'Monitoramento de Riscos',
+                subtitle: 'Estoque crítico e alertas do sistema',
+                icon: Icons.warning_amber_rounded,
+                child: CriticalStockWidget(),
               ),
               delay: 500,
             ),
@@ -245,8 +244,8 @@ class DashboardPage extends StatelessWidget {
         final crossAxisCount = constraints.maxWidth > 900
             ? 3
             : constraints.maxWidth > 600
-            ? 2
-            : 1;
+                ? 2
+                : 1;
 
         return GridView.count(
           crossAxisCount: crossAxisCount,
@@ -284,53 +283,27 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildCostsSectionEnhanced(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      if (constraints.maxWidth > 1100) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: CostPerEpiChart()),
-            const SizedBox(width: 24),
-            Expanded(child: CostPerSectorChart()),
-          ],
-        );
-      } else {
-        return Column(
-          children: [
-            CostPerEpiChart(),
-            const SizedBox(height: 24),
-            CostPerSectorChart(),
-          ],
-        );
-      }
-    },
-  );
-
-  Widget _buildRiskAreaEnhanced(BuildContext context) => Column(
-    children: [
-      LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 1100) {
             return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: CriticalStockWidget()),
+                Expanded(child: CostPerEpiChart()),
                 const SizedBox(width: 24),
-                Expanded(child: TopReasonsTable()),
+                Expanded(child: CostPerSectorChart()),
               ],
             );
           } else {
             return Column(
               children: [
-                CriticalStockWidget(),
+                CostPerEpiChart(),
                 const SizedBox(height: 24),
-                TopReasonsTable(),
+                CostPerSectorChart(),
               ],
             );
           }
         },
-      ),
-    ],
-  );
+      );
 
   Widget _animatedEnhanced(Widget child, {int delay = 0}) {
     return TweenAnimationBuilder<double>(
@@ -392,8 +365,9 @@ class PremiumSection extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer
-                                    .withValues(alpha: 0.1),
+                                color: colorScheme.primaryContainer.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Icon(
@@ -432,14 +406,14 @@ class PremiumSection extends StatelessWidget {
                 ),
                 if (onInfo != null)
                   IconButton(
-                    icon: Icon(Icons.info_outline_rounded, size: 20),
+                    icon: const Icon(Icons.info_outline_rounded, size: 20),
                     onPressed: onInfo,
                     tooltip: 'Mais informações',
                   ),
               ],
             ),
           ),
-    
+
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),

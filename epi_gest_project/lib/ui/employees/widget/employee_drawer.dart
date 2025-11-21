@@ -36,7 +36,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   File? _imageFile;
   String? _imagemPath;
   DateTime? _dataEntrada;
-  DateTime? _dataNascimento;
   DateTime? _dataDesligamento;
   DateTime? _dataRetornoFerias;
   bool _statusAtivo = true;
@@ -45,25 +44,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   bool get _isAdding => widget.employeeToEdit == null && !widget.view;
   bool get _isViewing => widget.view;
 
-  final Map<String, TextEditingController> _controllers = {
-    'id': TextEditingController(),
-    'matricula': TextEditingController(),
-    'nome': TextEditingController(),
-    'cpf': TextEditingController(),
-    'rg': TextEditingController(),
-    'dataEntrada': TextEditingController(),
-    'dataNascimento': TextEditingController(),
-    'telefone': TextEditingController(),
-    'email': TextEditingController(),
-    'lider': TextEditingController(),
-    'gestor': TextEditingController(),
-    'localTrabalho': TextEditingController(),
-    'turno': TextEditingController(),
-    'dataDesligamento': TextEditingController(),
-    'motivoDesligamento': TextEditingController(),
-    'newTurno': TextEditingController(),
-    'newLocalTrabalho': TextEditingController(),
-  };
+  // CONTROLLERS - APENAS OS NECESSÁRIOS
+  late final Map<String, TextEditingController> _controllers;
 
   final Map<String, GlobalKey> _overlayKeys = {
     'turno': GlobalKey(),
@@ -94,6 +76,24 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   @override
   void initState() {
     super.initState();
+    // INICIALIZAR CONTROLLERS NO initState
+    _controllers = {
+      'id': TextEditingController(),
+      'matricula': TextEditingController(),
+      'nome': TextEditingController(),
+      'telefone': TextEditingController(),
+      'email': TextEditingController(),
+      'lider': TextEditingController(),
+      'gestor': TextEditingController(),
+      'localTrabalho': TextEditingController(),
+      'turno': TextEditingController(),
+      'dataEntrada': TextEditingController(),
+      'dataDesligamento': TextEditingController(),
+      'motivoDesligamento': TextEditingController(),
+      'newTurno': TextEditingController(),
+      'newLocalTrabalho': TextEditingController(),
+    };
+
     _loadInitialData().then((_) {
       if (!_isAdding) {
         _populateFormForEdit();
@@ -140,20 +140,13 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _controllers['id']!.text = employee.id!;
     _controllers['matricula']!.text = employee.matricula;
     _controllers['nome']!.text = employee.nome;
-    _controllers['cpf']!.text = employee.cpf ?? '';
-    _controllers['rg']!.text = employee.rg ?? '';
-    _controllers['dataEntrada']!.text = DateFormat(
-      'dd/MM/yyyy',
-    ).format(employee.dataEntrada);
-    _controllers['dataNascimento']!.text = employee.dataNascimento != null
-        ? DateFormat('dd/MM/yyyy').format(employee.dataNascimento!)
-        : '';
     _controllers['telefone']!.text = employee.telefone ?? '';
     _controllers['email']!.text = employee.email ?? '';
     _controllers['lider']!.text = employee.lider ?? '';
     _controllers['gestor']!.text = employee.gestor ?? '';
     _controllers['localTrabalho']!.text = employee.localTrabalho ?? '';
     _controllers['turno']!.text = employee.turno ?? '';
+    _controllers['dataEntrada']!.text = DateFormat('dd/MM/yyyy').format(employee.dataEntrada);
     _controllers['dataDesligamento']!.text = employee.dataDesligamento != null
         ? DateFormat('dd/MM/yyyy').format(employee.dataDesligamento!)
         : '';
@@ -162,7 +155,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
     setState(() {
       _dataEntrada = employee.dataEntrada;
-      _dataNascimento = employee.dataNascimento;
       _dataDesligamento = employee.dataDesligamento;
       _dataRetornoFerias = employee.dataRetornoFerias;
       _statusAtivo = employee.statusAtivo;
@@ -566,7 +558,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     }
   }
 
-  // MÉTODOS EXISTENTES (mantidos da versão anterior)
   Future<void> _selectDate(
     String field,
     Function(DateTime) onDateSelected,
@@ -587,8 +578,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   void _selectDateEntrada() =>
       _selectDate('dataEntrada', (date) => _dataEntrada = date);
-  void _selectDateNascimento() =>
-      _selectDate('dataNascimento', (date) => _dataNascimento = date);
+
   void _selectDateDesligamento() =>
       _selectDate('dataDesligamento', (date) => _dataDesligamento = date);
 
@@ -671,9 +661,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         matricula: _controllers['matricula']!.text.trim(),
         nome: _controllers['nome']!.text.trim(),
         dataEntrada: _dataEntrada!,
-        cpf: _controllers['cpf']!.text.trim(),
-        rg: _controllers['rg']!.text.trim(),
-        dataNascimento: _dataNascimento,
         telefone: _controllers['telefone']!.text.trim(),
         email: _controllers['email']!.text.trim(),
         setor: null,
@@ -924,43 +911,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 onImageRemoved: _onImageRemoved,
                 viewOnly: _isViewing,
               ),
-              InfoSection(
-                title: 'Documentos Pessoais',
-                icon: Icons.assignment_outlined,
-                child: DocumentsSection(
-                  cpfController: _controllers['cpf']!,
-                  rgController: _controllers['rg']!,
-                  dataNascimentoController: _controllers['dataNascimento']!,
-                  onSelectDateNascimento: _selectDateNascimento,
-                  enabled: isEnabled,
-                ),
-              ),
-              InfoSection(
-                title: 'Contato',
-                icon: Icons.contact_phone_outlined,
-                child: ContactSection(
-                  telefoneController: _controllers['telefone']!,
-                  emailController: _controllers['email']!,
-                  enabled: isEnabled,
-                ),
-              ),
-              InfoSection(
-                title: 'Hierarquia',
-                icon: Icons.people_outline,
-                child: HierarchySection(
-                  liderController: _controllers['lider']!,
-                  gestorController: _controllers['gestor']!,
-                  funcionariosSugeridos: _suggestions['funcionarios']!,
-                  enabled: isEnabled,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Column(
-            spacing: 32,
-            children: [
+              // INFORMAÇÕES BÁSICAS AGORA NO LADO ESQUERDO (ORDEM LÓGICA)
               InfoSection(
                 title: 'Informações Básicas',
                 icon: Icons.info_outlined,
@@ -978,6 +929,24 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 child: ContactSection(
                   telefoneController: _controllers['telefone']!,
                   emailController: _controllers['email']!,
+                  enabled: isEnabled,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Column(
+            spacing: 32,
+            children: [
+              // HIERARQUIA AGORA NO LADO DIREITO (DEPOIS DAS INFORMAÇÕES BÁSICAS)
+              InfoSection(
+                title: 'Hierarquia',
+                icon: Icons.people_outline,
+                child: HierarchySection(
+                  liderController: _controllers['lider']!,
+                  gestorController: _controllers['gestor']!,
+                  funcionariosSugeridos: _suggestions['funcionarios']!,
                   enabled: isEnabled,
                 ),
               ),
@@ -1057,23 +1026,22 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           ),
         ),
         InfoSection(
-          title: 'Documentos Pessoais',
-          icon: Icons.assignment_outlined,
-          child: DocumentsSection(
-            enabled: isEnabled,
-            cpfController: _controllers['cpf']!,
-            rgController: _controllers['rg']!,
-            dataNascimentoController: _controllers['dataNascimento']!,
-            onSelectDateNascimento: _selectDateNascimento,
-          ),
-        ),
-        InfoSection(
           title: 'Contato',
           icon: Icons.contact_phone_outlined,
           child: ContactSection(
             enabled: isEnabled,
             telefoneController: _controllers['telefone']!,
             emailController: _controllers['email']!,
+          ),
+        ),
+        InfoSection(
+          title: 'Hierarquia',
+          icon: Icons.people_outline,
+          child: HierarchySection(
+            enabled: isEnabled,
+            liderController: _controllers['lider']!,
+            gestorController: _controllers['gestor']!,
+            funcionariosSugeridos: _suggestions['funcionarios']!,
           ),
         ),
         InfoSection(
@@ -1089,16 +1057,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
             turnoButtonKey: _overlayKeys['turno']!,
             onAddLocalTrabalho: _showLocalTrabalhoModal,
             onAddTurno: _showTurnoTrabalhoModal,
-          ),
-        ),
-        InfoSection(
-          title: 'Hierarquia',
-          icon: Icons.people_outline,
-          child: HierarchySection(
-            enabled: isEnabled,
-            liderController: _controllers['lider']!,
-            gestorController: _controllers['gestor']!,
-            funcionariosSugeridos: _suggestions['funcionarios']!,
           ),
         ),
         InfoSection(
