@@ -19,7 +19,7 @@ class FichaEpiModel extends AppWriteModel {
       id: map['\$id'],
       mapeamentoFuncionarioId: map['mapeamentoFuncionario_id'],
       epiId: map['epi_id'],
-      validadeEpi: map['validade_epi'],
+      validadeEpi: DateTime.parse(map['validade_epi']),
       status: map['status'],
     );
   }
@@ -29,7 +29,7 @@ class FichaEpiModel extends AppWriteModel {
     return {
       'mapeamentoFuncionario_id': mapeamentoFuncionarioId,
       'epi_id': epiId,
-      'validade_epi': validadeEpi,
+      'validade_epi': validadeEpi.toIso8601String(),
       'status': status,
     };
   }
