@@ -173,6 +173,7 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
 
     if (selected != null) {
       setState(() {
+        _produtoCodigoController.text = selected['codigo'];
         _caController.text = selected['ca'];
         _produtoDescricaoController.text = selected['descricao'];
       });

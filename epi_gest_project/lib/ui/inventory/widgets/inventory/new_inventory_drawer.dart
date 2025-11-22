@@ -1,3 +1,4 @@
+import 'package:epi_gest_project/ui/widgets/search_selection_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/inventory/product_search_dialog.dart';
 
@@ -66,20 +67,53 @@ class _NewInventoryDrawerState extends State<NewInventoryDrawer> {
   }
 
   Future<void> _searchProduct() async {
-    final result = await showDialog(
+    final List<Map<String, dynamic>> products = [
+    {'codigo': 'P001', 'descricao': 'Capacete de Segurança', 'ca': 'CA12345', 'quantidadeSistema': 50},
+    {'codigo': 'P002', 'descricao': 'Luvas de Proteção', 'ca': 'CA12346', 'quantidadeSistema': 100},
+    {'codigo': 'P003', 'descricao': 'Óculos de Proteção', 'ca': 'CA12347', 'quantidadeSistema': 75},
+    {'codigo': 'P004', 'descricao': 'Protetor Auricular', 'ca': 'CA12348', 'quantidadeSistema': 30},
+    {'codigo': 'P005', 'descricao': 'Botina de Segurança', 'ca': 'CA12349', 'quantidadeSistema': 60},
+  ];
+
+    final selected = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => ProductSearchDialog(
-        onSelect: (product) {
-          setState(() {
-            _produtoCodigoController.text = product['codigo'] ?? '';
-            _produtoDescricaoController.text = product['descricao'] ?? '';
-            _caController.text = product['ca'] ?? '';
-            _quantidadeSistemaController.text = '${product['quantidadeSistema'] ?? 0}';
-            _novaQuantidadeController.text = '${product['quantidadeSistema'] ?? 0}';
-          });
+      builder: (context) => SearchSelectionDialog<Map<String, dynamic>>(
+        title: 'Buscar Produto',
+        searchHint: 'Buscar por código, descrição ou CA...',
+        items: products,
+        searchFilter: (item, query) {
+          return item['descricao'].toString().toLowerCase().contains(query) ||
+              item['codigo'].toString().toLowerCase().contains(query) ||
+              item['ca'].toString().toLowerCase().contains(query);
+        },
+        // Como desenhar cada item
+        itemBuilder: (context, item, onSelect) {
+          return ListTile(
+            leading: const CircleAvatar(child: Icon(Icons.inventory_2, size: 20)),
+            title: Text(item['descricao']),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('CA: ${item['ca']} • Codigo: ${item['codigo']}'),
+                Text('Saldo: ${item['quantidadeSistema']}')
+              ],
+            ),
+            onTap: onSelect,
+            trailing: const Icon(Icons.chevron_right),
+          );
         },
       ),
     );
+
+    if (selected != null) {
+      setState(() {
+        _produtoCodigoController.text = selected['codigo'];
+        _caController.text = selected['ca'];
+        _produtoDescricaoController.text = selected['descricao'];
+        _quantidadeSistemaController.text = selected['quantidadeSistema'].toString();
+        _novaQuantidadeController.text = selected['quantidadeSistema'].toString();
+      });
+    }
   }
 
   void _addProduct() {
