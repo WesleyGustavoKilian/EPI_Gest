@@ -6,6 +6,7 @@ import 'package:epi_gest_project/ui/inventory/widgets/inventory_data_table.dart'
 import 'package:epi_gest_project/ui/inventory/widgets/inventory_filters.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/entries/entry_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:epi_gest_project/ui/inventory/widgets/inventory/inventory_list_screen.dart';
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -68,11 +69,9 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   void _navigateToEntryScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const EntryListScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const EntryListScreen()));
   }
 
   @override
@@ -167,7 +166,11 @@ class _InventoryPageState extends State<InventoryPage> {
                     const SizedBox(width: 12),
                     FilledButton.icon(
                       onPressed: () {
-                        // TODO: Implementar tela de inventário
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const InventoryListScreen(),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.inventory_outlined),
                       label: const Text('Realizar Inventário'),
