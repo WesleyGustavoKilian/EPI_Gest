@@ -1,3 +1,9 @@
+import 'package:epi_gest_project/domain/models/armazem_model.dart';
+import 'package:epi_gest_project/domain/models/categoria_model.dart';
+import 'package:epi_gest_project/domain/models/marcas_model.dart';
+import 'package:epi_gest_project/domain/models/medida_model.dart';
+import 'package:epi_gest_project/domain/models/unidade_model.dart';
+
 import 'appwrite_model.dart';
 
 class EpiModel extends AppWriteModel {
@@ -7,10 +13,10 @@ class EpiModel extends AppWriteModel {
   final int periodicidade;
   final double estoque;
   final double valor;
-  final String marcaId;
-  final String armazemId;
-  final String categoriaId;
-  final String medidaId;
+  final MarcasModel marca;
+  final ArmazemModel armazem;
+  final CategoriaModel categoria;
+  final MedidaModel medida;
 
   EpiModel({
     super.id,
@@ -20,13 +26,51 @@ class EpiModel extends AppWriteModel {
     required this.periodicidade,
     required this.estoque,
     required this.valor,
-    required this.marcaId,
-    required this.armazemId,
-    required this.categoriaId,
-    required this.medidaId,
+    required this.marca,
+    required this.armazem,
+    required this.categoria,
+    required this.medida,
   });
 
   factory EpiModel.fromMap(Map<String, dynamic> map) {
+    Map<String, dynamic>? getData(dynamic data) {
+      if (data == null) return null;
+      if (data is Map<String, dynamic>) return data;
+      if (data is List && data.isNotEmpty)
+        return data.first as Map<String, dynamic>;
+      return null;
+    }
+
+    final marcaData = getData(map['marca_id']);
+    final armazemData = getData(map['armazem_id']);
+    final categoriaData = getData(map['categoria_id']);
+    final medidaData = getData(map['medida_id']);
+
+    final marcaObj = marcaData != null
+        ? MarcasModel.fromMap(marcaData)
+        : MarcasModel(id: '', nomeMarca: '');
+
+    final armazemObj = armazemData != null
+        ? ArmazemModel.fromMap(armazemData)
+        : ArmazemModel(
+            id: '',
+            codigoArmazem: '',
+            unidade: UnidadeModel(
+              nomeUnidade: '',
+              cnpj: '',
+              endereco: '',
+              tipoUnidade: Tipo.matriz,
+            ),
+          );
+
+    final categoriaObj = categoriaData != null
+        ? CategoriaModel.fromMap(categoriaData)
+        : CategoriaModel(id: '', codigoCategoria: '', nomeCategoria: '');
+
+    final medidaObj = medidaData != null
+        ? MedidaModel.fromMap(medidaData)
+        : MedidaModel(id: '', nomeMedida: '');
+
     return EpiModel(
       id: map['\$id'],
       ca: map['ca'] ?? '',
@@ -35,10 +79,10 @@ class EpiModel extends AppWriteModel {
       periodicidade: map['periodicidade'] ?? 0,
       estoque: (map['estoque'] ?? 0).toDouble(),
       valor: (map['valor'] ?? 0).toDouble(),
-      marcaId: map['marca_id'] ?? '',
-      armazemId: map['armazem_id'] ?? '',
-      categoriaId: map['categoria_id'] ?? '',
-      medidaId: map['medida_id'] ?? '',
+      marca: marcaObj,
+      armazem: armazemObj,
+      categoria: categoriaObj,
+      medida: medidaObj,
     );
   }
 
@@ -51,10 +95,10 @@ class EpiModel extends AppWriteModel {
       'periodicidade': periodicidade,
       'estoque': estoque,
       'valor': valor,
-      'marca_id': marcaId,
-      'armazem_id': armazemId,
-      'categoria_id': categoriaId,
-      'medida_id': medidaId,
+      'marca_id': marca.id,
+      'armazem_id': armazem.id,
+      'categoria_id': categoria.id,
+      'medida_id': medida.id,
     };
   }
 }

@@ -1,4 +1,5 @@
-import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
+import 'package:epi_gest_project/domain/models/turno_model.dart';
+import 'package:epi_gest_project/domain/models/vinculo_model.dart';
 
 import 'appwrite_model.dart';
 
@@ -8,8 +9,8 @@ class FuncionarioModel extends AppWriteModel {
   final DateTime dataEntrada;
   final String email;
   final String telefone;
-  final Turno turno;
-  final Vinculo vinculo;
+  final TurnoModel turno;
+  final VinculoModel vinculo;
   final String lider;
   final String gestor;
   final bool statusAtivo;
@@ -43,26 +44,27 @@ class FuncionarioModel extends AppWriteModel {
   factory FuncionarioModel.fromMap(Map<String, dynamic> map) {
     Map<String, dynamic>? getData(dynamic data) {
       if (data == null) return null;
-      if (data is Map<String, dynamic>) return data; // Se for objeto direto
-      if (data is List && data.isNotEmpty) return data.first as Map<String, dynamic>; // Se for lista
+      if (data is Map<String, dynamic>) return data;
+      if (data is List && data.isNotEmpty) return data.first as Map<String, dynamic>;
       return null;
     }
 
     final turnoData = getData(map['turno_id']);
     final turnoObj = turnoData != null
-        ? Turno(
-            id: turnoData['\$id'] ?? '',
-            nome: turnoData['nome_turno'] ?? '',
-          )
-        : Turno(id: '', nome: '');
+        ? TurnoModel.fromMap(turnoData)
+        : TurnoModel(
+            id: '',
+            turno: '',
+            horaEntrada: '',
+            horaSaida: '',
+            inicioAlmoco: '',
+            fimAlomoco: '',
+          );
 
     final vinculoData = getData(map['vinculo_id']);
     final vinculoObj = vinculoData != null
-        ? Vinculo(
-            id: vinculoData['\$id'] ?? '',
-            nome: vinculoData['nome_vinc'] ?? '',
-          )
-        : Vinculo(id: '', nome: '');
+        ? VinculoModel.fromMap(vinculoData)
+        : VinculoModel(id: '', nomeVinculo: '');
 
     return FuncionarioModel(
       id: map['\$id'],
@@ -77,8 +79,12 @@ class FuncionarioModel extends AppWriteModel {
       gestor: map['gestor'] ?? '',
       statusAtivo: map['status_ativo'] ?? true,
       statusFerias: map['status_ferias'] ?? false,
-      dataRetornoFerias: map['data_retorno_ferias'] != null ? DateTime.parse(map['data_retorno_ferias']) : null,
-      dataDesligamento: map['data_desligamento'] != null ? DateTime.parse(map['data_desligamento']) : null,
+      dataRetornoFerias: map['data_retorno_ferias'] != null
+          ? DateTime.parse(map['data_retorno_ferias'])
+          : null,
+      dataDesligamento: map['data_desligamento'] != null
+          ? DateTime.parse(map['data_desligamento'])
+          : null,
       motivoDesligamento: map['motivo_desligamento'],
       imagemPath: map['urlImagem'],
       createdAt: map['\$createdAt'],

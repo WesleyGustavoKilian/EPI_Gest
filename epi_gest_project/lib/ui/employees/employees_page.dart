@@ -1,7 +1,5 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
-import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_drawer.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_data_table.dart';

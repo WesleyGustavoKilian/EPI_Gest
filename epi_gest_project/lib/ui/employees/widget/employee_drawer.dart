@@ -2,7 +2,6 @@ import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/turno_repository.dart';
 import 'package:epi_gest_project/data/services/vinculo_repository.dart';
-import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/turno_model.dart';
 import 'package:epi_gest_project/domain/models/vinculo_model.dart';
@@ -100,7 +99,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       'motivoDesligamento': TextEditingController(),
       'newTurnoNome': TextEditingController(),
       'newVinculoNome': TextEditingController(),
-      'newVinculoCodigo': TextEditingController(),
     };
 
     _loadInitialData();
@@ -157,8 +155,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _controllers['email']!.text = employee.email;
     _controllers['lider']!.text = employee.lider;
     _controllers['gestor']!.text = employee.gestor;
-    _controllers['vinculo']!.text = employee.vinculo.nome;
-    _controllers['turno']!.text = employee.turno.nome;
+    _controllers['vinculo']!.text = employee.vinculo.nomeVinculo;
+    _controllers['turno']!.text = employee.turno.turno;
     _controllers['dataEntrada']!.text = DateFormat(
       'dd/MM/yyyy',
     ).format(employee.dataEntrada);
@@ -190,7 +188,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   void _showVinculoModal() {
     _controllers['newVinculoNome']!.clear();
-    _controllers['newVinculoCodigo']!.clear();
+    _controllers['newVinculoNome']!.clear();
     final theme = Theme.of(context);
 
     showDialog(
@@ -223,12 +221,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                           icon: const Icon(Icons.close),
                         ),
                       ],
-                    ),
-                    CustomTextField(
-                      controller: _controllers['newVinculoCodigo']!,
-                      label: 'Código (Opcional)',
-                      hint: 'Ex: V01',
-                      icon: Icons.qr_code,
                     ),
                     CustomTextField(
                       controller: _controllers['newVinculoNome']!,
@@ -291,10 +283,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       Navigator.pop(dialogContext); // Fecha modal
       setState(() => _isLoading = true); // Mostra loading no drawer
 
-      final novoVinculo = VinculoModel(
-        codigoVinculo: _controllers['newVinculoCodigo']!.text.trim(),
-        nomeVinculo: nome,
-      );
+      final novoVinculo = VinculoModel(nomeVinculo: nome);
 
       final created = await repo.create(novoVinculo);
 
@@ -371,7 +360,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                     onTap: () => _selectTimeModal(
                                       context,
                                       _tempEntrada,
-                                      (time) => setState(() => _tempEntrada = time),
+                                      (time) =>
+                                          setState(() => _tempEntrada = time),
                                     ),
                                   ),
                                   CustomTimeField(
@@ -380,7 +370,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                     onTap: () => _selectTimeModal(
                                       context,
                                       _tempSaida,
-                                      (time) => setState(() => _tempSaida = time),
+                                      (time) =>
+                                          setState(() => _tempSaida = time),
                                     ),
                                   ),
                                 ],
@@ -398,8 +389,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                     onTap: () => _selectTimeModal(
                                       context,
                                       _tempAlmocoInicio,
-                                      (time) =>
-                                          setState(() => _tempAlmocoInicio = time),
+                                      (time) => setState(
+                                        () => _tempAlmocoInicio = time,
+                                      ),
                                     ),
                                   ),
                                   CustomTimeField(
@@ -501,8 +493,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       setState(() {
         _turnosDisponiveis.add(created);
         _turnosSugestoes.add(created.turno);
-        _controllers['turno']!.text =
-            created.turno;
+        _controllers['turno']!.text = created.turno;
         _isLoading = false;
       });
       _showSuccessSnackBar('Turno criado com sucesso!');
@@ -596,10 +587,17 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         dataEntrada: _dataEntrada!,
         telefone: _controllers['telefone']!.text.trim(),
         email: _controllers['email']!.text.trim(),
-        turno: Turno(id: turnoSelecionado.id, nome: turnoSelecionado.turno),
-        vinculo: Vinculo(
+        turno: TurnoModel(
+          id: turnoSelecionado.id,
+          turno: turnoSelecionado.turno,
+          horaEntrada: turnoSelecionado.horaEntrada,
+          horaSaida: turnoSelecionado.horaSaida,
+          inicioAlmoco: turnoSelecionado.inicioAlmoco,
+          fimAlomoco: turnoSelecionado.fimAlomoco,
+        ),
+        vinculo: VinculoModel(
           id: vinculoSelecionado.id,
-          nome: vinculoSelecionado.nomeVinculo,
+          nomeVinculo: vinculoSelecionado.nomeVinculo,
         ),
         lider: _controllers['lider']!.text.trim(),
         gestor: _controllers['gestor']!.text.trim(),

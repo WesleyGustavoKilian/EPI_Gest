@@ -51,6 +51,8 @@ dependencies:
   syncfusion_flutter_gauges: ^31.2.5
   open_file: ^3.5.10
   appwrite: ^20.3.0
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:

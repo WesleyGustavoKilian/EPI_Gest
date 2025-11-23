@@ -1,6 +1,5 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/config/theme_notifier.dart';
-import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/turno_repository.dart';
 import 'package:epi_gest_project/data/services/vinculo_repository.dart';
@@ -27,7 +26,6 @@ void main() {
         Provider<TurnoRepository>(
           create: (_) => TurnoRepository(TablesDB(client)),
         ),
-        Provider<EmployeeService>(create: (_) => EmployeeService(client)),
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
       ],
       child: const MyApp(),

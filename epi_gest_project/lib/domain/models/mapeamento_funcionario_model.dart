@@ -1,32 +1,91 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
+import 'package:epi_gest_project/domain/models/cargo_model.dart';
+import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
+import 'package:epi_gest_project/domain/models/setor_model.dart';
+import 'package:epi_gest_project/domain/models/turno_model.dart';
+import 'package:epi_gest_project/domain/models/unidade_model.dart';
+import 'package:epi_gest_project/domain/models/vinculo_model.dart';
 
 class MapeamentoFuncionarioModel extends AppWriteModel {
-  final String funcionarioId;
-  final String mapeamentoId;
-  final String unidadeId;
+  final FuncionarioModel funcionario;
+  final MapeamentoEpiModel mapeamento;
+  final UnidadeModel unidade;
 
   MapeamentoFuncionarioModel({
     super.id,
-    required this.funcionarioId,
-    required this.mapeamentoId,
-    required this.unidadeId,
+    required this.funcionario,
+    required this.mapeamento,
+    required this.unidade,
   });
 
   factory MapeamentoFuncionarioModel.fromMap(Map<String, dynamic> map) {
+    Map<String, dynamic>? getData(dynamic data) {
+      if (data == null) return null;
+      if (data is Map<String, dynamic>) return data;
+      if (data is List && data.isNotEmpty)
+        return data.first as Map<String, dynamic>;
+      return null;
+    }
+
+    final funcionarioData = getData(map['funcionario_id']);
+    final mapeamentoData = getData(map['mapeamento_id']);
+    final unidadeData = getData(map['unidade_id']);
+
+    final funcionarioObj = funcionarioData != null
+        ? FuncionarioModel.fromMap(funcionarioData)
+        : FuncionarioModel(
+            matricula: '',
+            nomeFunc: '',
+            dataEntrada: DateTime.now(),
+            telefone: '',
+            email: '',
+            turno: TurnoModel(
+              turno: '',
+              horaEntrada: '',
+              horaSaida: '',
+              inicioAlmoco: '',
+              fimAlomoco: '',
+            ),
+            vinculo: VinculoModel(nomeVinculo: ''),
+            lider: '',
+            gestor: '',
+            statusAtivo: false,
+            statusFerias: false,
+          );
+
+    final mapeamentoObj = mapeamentoData != null
+        ? MapeamentoEpiModel.fromMap(mapeamentoData)
+        : MapeamentoEpiModel(
+            codigoMapeamento: '',
+            cargo: CargoModel(codigoCargo: '', nomeCargo: ''),
+            setor: SetorModel(codigoSetor: '', nomeSetor: ''),
+            riscos: List.empty(),
+            listCategoriasEpis: List.empty(),
+          );
+    final unidadeObj = unidadeData != null
+        ? UnidadeModel.fromMap(unidadeData)
+        : UnidadeModel(
+            nomeUnidade: '',
+            cnpj: '',
+            endereco: '',
+            tipoUnidade: Tipo.matriz,
+          );
+
     return MapeamentoFuncionarioModel(
       id: map['\$id'],
-      funcionarioId: map['funcionario_id'],
-      mapeamentoId: map['mapeamento_id'],
-      unidadeId: map['unidade_id'],
+      funcionario: funcionarioObj,
+      mapeamento: mapeamentoObj,
+      unidade: unidadeObj,
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
     return {
-      'funcionario_id': funcionarioId,
-      'mapeamento_id': mapeamentoId,
-      'unidade_id': unidadeId
+      'funcionario_id': funcionario.id,
+      'mapeamento_id': mapeamento.id,
+      'unidade_id': unidade.id,
     };
   }
 }

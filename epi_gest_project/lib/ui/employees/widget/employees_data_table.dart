@@ -100,7 +100,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
             compare = a.nomeFunc.compareTo(b.nomeFunc);
             break;
           case 2:
-            compare = a.vinculo.nome.compareTo(b.vinculo.nome); 
+            compare = a.vinculo.nomeVinculo.compareTo(b.vinculo.nomeVinculo); 
             break;
           case 3:
             compare = a.dataEntrada.compareTo(b.dataEntrada);
@@ -271,8 +271,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          employee.vinculo.nome.isNotEmpty == true 
-                                              ? employee.vinculo.nome
+                                          employee.vinculo.nomeVinculo.isNotEmpty == true 
+                                              ? employee.vinculo.nomeVinculo
                                               : '-',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
