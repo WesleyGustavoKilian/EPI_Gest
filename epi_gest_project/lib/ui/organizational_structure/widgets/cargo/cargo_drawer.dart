@@ -1,66 +1,54 @@
-import 'package:epi_gest_project/domain/models/organizational/department_model.dart';
+import 'package:appwrite/appwrite.dart';
+import 'package:epi_gest_project/data/services/cargo_repository.dart';
+import 'package:epi_gest_project/domain/models/cargo_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class DepartmentDrawer extends StatefulWidget {
+class CargoDrawer extends StatefulWidget {
   final VoidCallback onClose;
-  final Function(Department) onSave;
-  final Department? departmentToEdit;
+  final Function(CargoModel) onSave;
+  final CargoModel? cargoToEdit;
   final bool view;
 
-  const DepartmentDrawer({
+  const CargoDrawer({
     super.key,
     required this.onClose,
     required this.onSave,
-    this.departmentToEdit,
+    this.cargoToEdit,
     this.view = false,
   });
 
   @override
-  State<DepartmentDrawer> createState() => _DepartmentDrawerState();
+  State<CargoDrawer> createState() => _CargoDrawerState();
 }
 
-class _DepartmentDrawerState extends State<DepartmentDrawer> {
+class _CargoDrawerState extends State<CargoDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _descricaoController = TextEditingController();
-  final _unidadeVinculada = TextEditingController();
+  final _nomeCargoController = TextEditingController();
+  final _codigoCargoController = TextEditingController();
 
-  bool get _isEditing => widget.departmentToEdit != null && !widget.view;
-  bool get _isAdding => widget.departmentToEdit == null && !widget.view;
+  bool get _isEditing => widget.cargoToEdit != null && !widget.view;
   bool get _isViewing => widget.view;
   bool _isSaving = false;
-
-  // Lista de unidades disponíveis
-  final List<String> _unidadesDisponiveis = [
-    'Matriz Araras',
-    'Filial São Paulo', 
-    'Filial Rio de Janeiro',
-    'Filial Belo Horizonte',
-    'Filial Curitiba',
-    'Filial Porto Alegre',
-    'Filial Brasília',
-    'Filial Salvador',
-  ];
 
   @override
   void initState() {
     super.initState();
-    if (_isEditing || _isViewing) {
-      _populateForm();
-    }
+    if (_isEditing || _isViewing) _populateForm();
   }
 
   void _populateForm() {
-    final department = widget.departmentToEdit!;
-    _descricaoController.text = department.descricao;
-    _unidadeVinculada.text = department.unidade;
+    final cargo = widget.cargoToEdit!;
+    _nomeCargoController.text = cargo.nomeCargo;
+    _codigoCargoController.text = cargo.codigoCargo;
   }
 
   @override
   void dispose() {
-    _descricaoController.dispose();
-    _unidadeVinculada.dispose();
+    _nomeCargoController.dispose();
+    _codigoCargoController.dispose();
     super.dispose();
   }
 
@@ -69,18 +57,40 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
 
     setState(() => _isSaving = true);
 
-    final departmentData = Department(
-      id: widget.departmentToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      codigo: '', // Código removido
-      descricao: _descricaoController.text,
-      unidade: _unidadeVinculada.text,
+    final cargoModel = CargoModel(
+      id: widget.cargoToEdit?.id,
+      codigoCargo: _codigoCargoController.text.trim(),
+      nomeCargo: _nomeCargoController.text.trim(),
     );
 
-    widget.onSave(departmentData);
-    widget.onClose();
+    try {
+      final repository = Provider.of<CargoRepository>(context, listen: false);
+      
+      if (widget.cargoToEdit != null) {
+        await repository.update(widget.cargoToEdit!.id!, cargoModel.toMap());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cargo atualizado com sucesso!'), backgroundColor: Colors.green),
+        );
+      } else {
+        await repository.create(cargoModel);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cargo criado com sucesso!'), backgroundColor: Colors.green),
+        );
+      }
 
-    if (mounted) {
-      setState(() => _isSaving = false);
+      widget.onSave(cargoModel);
+      widget.onClose();
+      
+    } on AppwriteException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar: ${e.message}'), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -89,16 +99,12 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
     final theme = Theme.of(context);
     return BaseDrawer(
       onClose: widget.onClose,
+      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
-      widthFactor: 0.4,
     );
   }
-
-  // ------------------------------
-  // HEADER - MANTIDO PADRÃO
-  // ------------------------------
 
   Widget _buildHeader(ThemeData theme) {
     String title;
@@ -106,18 +112,17 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
     IconData icon;
 
     if (_isViewing) {
-      title = 'Visualizar Departamento';
-      subtitle =
-          'Informações do Departamento de ${widget.departmentToEdit?.descricao ?? ""}';
+      title = 'Visualizar Cargo';
+      subtitle = 'Informações completas do cargo';
       icon = Icons.visibility_outlined;
     } else if (_isEditing) {
-      title = 'Editar Departamento';
-      subtitle = 'Altere os dados do Departamento';
+      title = 'Editar Cargo';
+      subtitle = 'Altere os dados do cargo';
       icon = Icons.edit_outlined;
     } else {
-      title = 'Adicionar Departamento';
-      subtitle = 'Preencha os dados do novo Departamento';
-      icon = Icons.add_business_outlined;
+      title = 'Adicionar Cargo/Função';
+      subtitle = 'Preencha os dados do novo cargo';
+      icon = Icons.add_card_outlined;
     }
 
     return Container(
@@ -178,39 +183,31 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
     );
   }
 
-  // ------------------------------
-  // FORM - SEM CÓDIGO E COM AUTOCORRECT FUNCIONAL
-  // ------------------------------
-
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 
     return Form(
       key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 20,
           children: [
-            // Campo Descrição
-            _buildCustomTextField(
-              controller: _descricaoController,
-              label: 'Descrição do Setor*',
-              hint: 'Ex: Produção, Administrativo, RH, Financeiro',
-              icon: Icons.work_outline,
+            CustomTextField(
+              controller: _codigoCargoController,
+              label: 'Código do Cargo',
+              hint: 'Ex: ANL01, GER02, ASSIS01, OP03',
               enabled: isEnabled,
+              icon: Icons.qr_code_outlined,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
-            const SizedBox(height: 20),
-
-            // Campo Unidade Vinculada - CORRIGIDO
-            _buildCustomDropdown(
-              controller: _unidadeVinculada,
-              label: 'Unidade Vinculada*',
-              hint: 'Selecione a unidade',
-              icon: Icons.workspaces_outlined,
+            CustomTextField(
+              controller: _nomeCargoController,
+              label: 'Descrição do Cargo',
+              hint: 'Ex: Analista, Gerente, Assistente, Operador',
               enabled: isEnabled,
-              items: _unidadesDisponiveis,
+              icon: Icons.work_outline,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
           ],
@@ -218,137 +215,6 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
       ),
     );
   }
-
-  // ------------------------------
-  // COMPONENTES DE FORMULÁRIO MODERNOS
-  // ------------------------------
-
-  Widget _buildCustomTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required bool enabled,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      style: TextStyle(
-        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        hintText: hint,
-        prefixIcon: Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        enabled: enabled,
-        filled: !enabled,
-        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: validator,
-    );
-  }
-
-  Widget _buildCustomDropdown({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required bool enabled,
-    required List<String> items,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-    String? selectedValue = controller.text.isEmpty ? null : controller.text;
-
-    return DropdownButtonFormField<String>(
-      value: selectedValue,
-      items: items.map((String unidade) {
-        return DropdownMenuItem(
-          value: unidade,
-          child: Text(unidade),
-        );
-      }).toList(),
-      onChanged: enabled ? (String? newValue) {
-        setState(() {
-          selectedValue = newValue;
-          controller.text = newValue ?? '';
-        });
-      } : null,
-      style: TextStyle(
-        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        hintText: hint,
-        prefixIcon: Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        enabled: enabled,
-        filled: !enabled,
-        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        suffixIcon: enabled ? const Icon(Icons.arrow_drop_down_outlined) : null,
-      ),
-      icon: enabled ? Icon(
-        Icons.arrow_drop_down_outlined,
-        color: theme.colorScheme.onSurfaceVariant,
-      ) : null,
-      borderRadius: BorderRadius.circular(12),
-      validator: validator,
-    );
-  }
-
-  // ------------------------------
-  // FOOTER (EDITAR) - BOTÕES MODERNOS
-  // ------------------------------
 
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
@@ -451,7 +317,7 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _isEditing ? "Salvar Alterações" : "Adicionar Departamento",
+                            _isEditing ? "Salvar Alterações" : "Adicionar Cargo",
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                             ),

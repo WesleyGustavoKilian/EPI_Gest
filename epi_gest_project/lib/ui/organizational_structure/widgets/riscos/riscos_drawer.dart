@@ -1,49 +1,54 @@
-import 'package:epi_gest_project/domain/models/organizational/risk_model.dart';
+import 'package:appwrite/appwrite.dart';
+import 'package:epi_gest_project/data/services/riscos_repository.dart';
+import 'package:epi_gest_project/domain/models/riscos_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class RisksDrawer extends StatefulWidget {
+class RiscosDrawer extends StatefulWidget {
   final VoidCallback onClose;
-  final Function(Risk) onSave;
-  final Risk? riskToEdit;
+  final Function(RiscosModel) onSave;
+  final RiscosModel? riscoToEdit;
   final bool view;
 
-  const RisksDrawer({
+  const RiscosDrawer({
     super.key,
     required this.onClose,
     required this.onSave,
-    this.riskToEdit,
+    this.riscoToEdit,
     this.view = false,
   });
 
   @override
-  State<RisksDrawer> createState() => _RisksDrawerState();
+  State<RiscosDrawer> createState() => _RiscosDrawerState();
 }
 
-class _RisksDrawerState extends State<RisksDrawer> {
+class _RiscosDrawerState extends State<RiscosDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _descricaoController = TextEditingController();
+  final _nomeRiscoController = TextEditingController();
+  final _codigoRiscoController = TextEditingController();
 
-  bool get _isEditing => widget.riskToEdit != null && !widget.view;
+  bool get _isEditing => widget.riscoToEdit != null && !widget.view;
   bool get _isViewing => widget.view;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    if (_isEditing || _isViewing) {
-      _populateForm();
-    }
+    if (_isEditing || _isViewing) _populateForm();
   }
 
   void _populateForm() {
-    final risk = widget.riskToEdit!;
-    _descricaoController.text = risk.descricao;
+    final risco = widget.riscoToEdit!;
+    _nomeRiscoController.text = risco.nomeRiscos;
+    _codigoRiscoController.text = risco.codigoRiscos;
   }
 
   @override
   void dispose() {
-    _descricaoController.dispose();
+    _nomeRiscoController.dispose();
+    _codigoRiscoController.dispose();
     super.dispose();
   }
 
@@ -51,19 +56,54 @@ class _RisksDrawerState extends State<RisksDrawer> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 500));
 
-    final riskData = Risk(
-      id: widget.riskToEdit?.id ?? '',
-      descricao: _descricaoController.text,
-      codigo: '', // ⬅️ Mantenha temporariamente ou remova do model
+    final riscoModel = RiscosModel(
+      id: widget.riscoToEdit?.id,
+      codigoRiscos: _codigoRiscoController.text.trim(),
+      nomeRiscos: _nomeRiscoController.text.trim(),
     );
 
-    widget.onSave(riskData);
-    widget.onClose();
+    try {
+      final repository = Provider.of<RiscosRepository>(context, listen: false);
 
-    if (mounted) {
-      setState(() => _isSaving = false);
+      if (widget.riscoToEdit != null) {
+        // Update
+        await repository.update(widget.riscoToEdit!.id!, riscoModel.toMap());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Risco atualizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Create
+        await repository.create(riscoModel);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Risco criado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      widget.onSave(riscoModel);
+      widget.onClose();
+    } on AppwriteException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar: ${e.message}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro inesperado: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -78,10 +118,6 @@ class _RisksDrawerState extends State<RisksDrawer> {
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
     );
   }
-
-  // ------------------------------
-  // HEADER - PADRÃO MODERNO
-  // ------------------------------
 
   Widget _buildHeader(ThemeData theme) {
     String title;
@@ -160,10 +196,6 @@ class _RisksDrawerState extends State<RisksDrawer> {
     );
   }
 
-  // ------------------------------
-  // FORM - CAMPOS MODERNOS
-  // ------------------------------
-
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 
@@ -173,81 +205,31 @@ class _RisksDrawerState extends State<RisksDrawer> {
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 20,
           children: [
-            // Campo Descrição (único campo agora)
-            _buildModernTextField(
-              controller: _descricaoController,
-              label: 'Descrição do Risco*',
+            CustomTextField(
+              controller: _codigoRiscoController,
+              label: 'Codigo do Risco',
+              hint: 'Ex: QUI01, FIS01, BIO03',
+              enabled: isEnabled,
+              icon: Icons.qr_code_outlined,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+            ),
+            CustomTextField(
+              controller: _nomeRiscoController,
+              label: 'Descrição do Risco',
               hint: 'Ex: Químico, Físico, Biológico, Acidente',
               enabled: isEnabled,
               icon: Icons.warning_amber_outlined,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
           ],
         ),
       ),
     );
   }
-
-  // ------------------------------
-  // COMPONENTE DE CAMPO MODERNO
-  // ------------------------------
-
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required bool enabled,
-    required IconData icon,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      style: TextStyle(
-        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        hintText: hint,
-        prefixIcon: Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        enabled: enabled,
-        filled: !enabled,
-        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: validator,
-    );
-  }
-
-  // ------------------------------
-  // FOOTER (EDITAR) - BOTÕES MODERNOS
-  // ------------------------------
 
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
@@ -270,7 +252,6 @@ class _RisksDrawerState extends State<RisksDrawer> {
       ),
       child: Row(
         children: [
-          // Botão Cancelar - Estilo moderno
           Expanded(
             child: SizedBox(
               height: 48,
@@ -303,10 +284,9 @@ class _RisksDrawerState extends State<RisksDrawer> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
-          // Botão Principal - Estilo moderno
+
           Expanded(
             flex: 2,
             child: SizedBox(
@@ -335,9 +315,7 @@ class _RisksDrawerState extends State<RisksDrawer> {
                           const SizedBox(width: 12),
                           Text(
                             "Salvando...",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       )
@@ -350,10 +328,10 @@ class _RisksDrawerState extends State<RisksDrawer> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _isEditing ? "Salvar Alterações" : "Adicionar Risco",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            _isEditing
+                                ? "Salvar Alterações"
+                                : "Adicionar Risco",
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -364,10 +342,6 @@ class _RisksDrawerState extends State<RisksDrawer> {
       ),
     );
   }
-
-  // ------------------------------
-  // FOOTER (VIEW) - BOTÃO MODERNIZADO
-  // ------------------------------
 
   Widget _buildViewFooter(ThemeData theme) {
     return Container(

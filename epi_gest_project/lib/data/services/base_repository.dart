@@ -1,4 +1,3 @@
-// lib/data/repositories/base_repository.dart
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
 import '../../core/constants/appwrite_constants.dart';

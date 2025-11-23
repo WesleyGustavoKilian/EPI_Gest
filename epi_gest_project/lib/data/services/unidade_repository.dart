@@ -5,10 +5,7 @@ import 'package:epi_gest_project/domain/models/unidade_model.dart';
 
 class UnidadeRepository extends BaseRepository<UnidadeModel> {
   UnidadeRepository(TablesDB databases)
-      : super(databases, AppwriteConstants.databaseId); 
-      
-  @override
-  String get tableId => 'unidade'; 
+      : super(databases, AppwriteConstants.databaseLocalTrabalho);  
 
   @override
   UnidadeModel fromMap(Map<String, dynamic> map) {

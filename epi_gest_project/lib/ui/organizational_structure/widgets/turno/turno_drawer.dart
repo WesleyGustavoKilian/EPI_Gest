@@ -1,66 +1,76 @@
-import 'package:epi_gest_project/domain/models/organizational/shifts_model.dart';
+import 'package:appwrite/appwrite.dart';
+import 'package:epi_gest_project/data/services/turno_repository.dart';
+import 'package:epi_gest_project/domain/models/turno_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/form_fields.dart';
+import 'package:epi_gest_project/ui/widgets/info_section.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-class ShiftDrawer extends StatefulWidget {
+class TurnoDrawer extends StatefulWidget {
   final VoidCallback onClose;
-  final Function(Shift) onSave;
-  final Shift? shiftToEdit;
+  final Function(TurnoModel) onSave;
+  final TurnoModel? turnoToEdit;
   final bool view;
 
-  const ShiftDrawer({
+  const TurnoDrawer({
     super.key,
     required this.onClose,
     required this.onSave,
-    this.shiftToEdit,
+    this.turnoToEdit,
     this.view = false,
   });
 
   @override
-  State<ShiftDrawer> createState() => _ShiftDrawerState();
+  State<TurnoDrawer> createState() => _TurnoDrawerState();
 }
 
-class _ShiftDrawerState extends State<ShiftDrawer> {
+class _TurnoDrawerState extends State<TurnoDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _nomeController = TextEditingController();
+  final _turnoController = TextEditingController();
 
   // Estado para os horários
-  late TimeOfDay _entrada;
-  late TimeOfDay _saida;
-  late TimeOfDay _almocoInicio;
-  late TimeOfDay _almocoFim;
+  final _entradaController = TextEditingController();
+  final _saidaController = TextEditingController();
+  final _almocoInicioController = TextEditingController();
+  final _almocoFimController = TextEditingController();
 
-  bool get _isEditing => widget.shiftToEdit != null && !widget.view;
+  bool get _isEditing => widget.turnoToEdit != null && !widget.view;
+  bool get _isAdding => widget.turnoToEdit == null && !widget.view;
   bool get _isViewing => widget.view;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    if (_isEditing || _isViewing) {
-      _populateForm();
-    } else {
-      // Valores padrão para um novo turno
-      _entrada = const TimeOfDay(hour: 8, minute: 0);
-      _saida = const TimeOfDay(hour: 18, minute: 0);
-      _almocoInicio = const TimeOfDay(hour: 12, minute: 0);
-      _almocoFim = const TimeOfDay(hour: 13, minute: 0);
-    }
+    if (_isEditing || _isViewing) _populateForm();
+    if (_isAdding) _populateTime();
+  }
+
+  void _populateTime() {
+    _entradaController.text = "08:00";
+    _saidaController.text = "18:00";
+    _almocoInicioController.text = "12:00";
+    _almocoFimController.text = "13:00";
   }
 
   void _populateForm() {
-    final shift = widget.shiftToEdit!;
-    _nomeController.text = shift.nome;
-    _entrada = shift.entrada;
-    _saida = shift.saida;
-    _almocoInicio = shift.almocoInicio;
-    _almocoFim = shift.almocoFim;
+    final turno = widget.turnoToEdit!;
+    _turnoController.text = turno.turno;
+    _entradaController.text = turno.horaEntrada;
+    _saidaController.text = turno.horaSaida;
+    _almocoInicioController.text = turno.inicioAlmoco;
+    _almocoFimController.text = turno.fimAlomoco;
   }
 
   @override
   void dispose() {
-    _nomeController.dispose();
+    _turnoController.dispose();
+    _entradaController.dispose();
+    _saidaController.dispose();
+    _almocoInicioController.dispose();
+    _almocoFimController.dispose();
     super.dispose();
   }
 
@@ -68,37 +78,70 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 500));
 
-    final shiftData = Shift(
-    id: widget.shiftToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-    codigo: '', // Campo vazio temporariamente
-    nome: _nomeController.text,
-    entrada: _entrada,
-    saida: _saida,
-    almocoInicio: _almocoInicio,
-    almocoFim: _almocoFim,
-  );
+    final turnoModel = TurnoModel(
+      id: widget.turnoToEdit?.id,
+      turno: _turnoController.text.trim(),
+      horaEntrada: _entradaController.text.trim(),
+      horaSaida: _saidaController.text.trim(),
+      inicioAlmoco: _almocoInicioController.text.trim(),
+      fimAlomoco: _almocoFimController.text.trim(),
+    );
 
-    widget.onSave(shiftData);
-    widget.onClose();
+    try {
+      final repository = Provider.of<TurnoRepository>(context, listen: false);
 
-    if (mounted) {
-      setState(() => _isSaving = false);
+      if (widget.turnoToEdit != null) {
+        await repository.update(widget.turnoToEdit!.id!, turnoModel.toMap());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Turno atualizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        await repository.create(turnoModel);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Turno criado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      widget.onSave(turnoModel);
+      widget.onClose();
+    } on AppwriteException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar: ${e.message}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro inesperado: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
-  // Função auxiliar para mostrar o seletor de tempo
-  Future<void> _selectTime(
+  Future<void> _selectTimeModal(
     BuildContext context,
-    TimeOfDay initialTime,
+    String initialTime,
     Function(TimeOfDay) onTimeSelected,
   ) async {
+    final time = initialTime.split(":");
+    final correctedTime = TimeOfDay(hour: int.parse(time[0]), minute: int.parse(time[1]));
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: initialTime,
+      initialTime: correctedTime,
     );
-    if (picked != null && picked != initialTime) {
+    if (picked != null && picked != correctedTime) {
       setState(() {
         onTimeSelected(picked);
       });
@@ -108,6 +151,7 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return BaseDrawer(
       onClose: widget.onClose,
       widthFactor: 0.4,
@@ -116,10 +160,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
     );
   }
-
-  // ------------------------------
-  // HEADER - PADRÃO MODERNO
-  // ------------------------------
 
   Widget _buildHeader(ThemeData theme) {
     String title;
@@ -198,10 +238,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     );
   }
 
-  // ------------------------------
-  // FORM - CAMPOS MODERNOS COM SCROLL
-  // ------------------------------
-
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 
@@ -211,214 +247,80 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 20,
           children: [
-            // Campo Nome (único campo de texto agora)
-            _buildModernTextField(
-              controller: _nomeController,
-              label: 'Nome do Turno*',
+            CustomTextField(
+              controller: _turnoController,
+              label: 'Nome do Turno',
               hint: 'Ex: Turno Administrativo, Turno Produção, Manhã, Tarde',
               enabled: isEnabled,
               icon: Icons.work_outline,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
-            const SizedBox(height: 24),
-
-            // Seção Horários da Jornada
-            _buildSectionHeader(
+            InfoSection(
               title: 'Horários da Jornada',
               icon: Icons.schedule_outlined,
-              theme: theme,
+              child: Column(
+                spacing: 20,
+                children: [
+                  CustomTimeField(
+                    label: 'Horário de Entrada',
+                    time: _entradaController.text,
+                    enabled: isEnabled,
+                    onTap: () => _selectTimeModal(
+                      context,
+                      _entradaController.text,
+                      (time) => _entradaController.text = time.format(context),
+                    ),
+                  ),
+                  CustomTimeField(
+                    label: 'Horário de Saída',
+                    time: _saidaController.text,
+                    enabled: isEnabled,
+                    onTap: () => _selectTimeModal(
+                      context,
+                      _saidaController.text,
+                      (time) => _saidaController.text = time.format(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-
-            _buildModernTimePickerTile(
-              label: 'Horário de Entrada',
-              time: _entrada,
-              enabled: isEnabled,
-              onTap: () => _selectTime(context, _entrada, (time) => _entrada = time),
-            ),
-            const SizedBox(height: 16),
-
-            _buildModernTimePickerTile(
-              label: 'Horário de Saída',
-              time: _saida,
-              enabled: isEnabled,
-              onTap: () => _selectTime(context, _saida, (time) => _saida = time),
-            ),
-            const SizedBox(height: 24),
-
-            // Seção Intervalo de Almoço
-            _buildSectionHeader(
+            InfoSection(
               title: 'Intervalo de Almoço',
               icon: Icons.restaurant_outlined,
-              theme: theme,
-            ),
-            const SizedBox(height: 16),
-
-            _buildModernTimePickerTile(
-              label: 'Início do Almoço',
-              time: _almocoInicio,
-              enabled: isEnabled,
-              onTap: () => _selectTime(context, _almocoInicio, (time) => _almocoInicio = time),
-            ),
-            const SizedBox(height: 16),
-
-            _buildModernTimePickerTile(
-              label: 'Fim do Almoço',
-              time: _almocoFim,
-              enabled: isEnabled,
-              onTap: () => _selectTime(context, _almocoFim, (time) => _almocoFim = time),
+              child: Column(
+                spacing: 20,
+                children: [
+                  CustomTimeField(
+                    label: 'Início do Almoço',
+                    time: _almocoInicioController.text,
+                    enabled: isEnabled,
+                    onTap: () => _selectTimeModal(
+                      context,
+                      _almocoInicioController.text,
+                      (time) => _almocoInicioController.text = time.format(context),
+                    ),
+                  ),
+                  CustomTimeField(
+                    label: 'Fim do Almoço',
+                    time: _almocoFimController.text,
+                    enabled: isEnabled,
+                    onTap: () => _selectTimeModal(
+                      context,
+                      _almocoFimController.text,
+                      (time) => _almocoFimController.text = time.format(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
-
-
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required bool enabled,
-    required IconData icon,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      style: TextStyle(
-        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        hintText: hint,
-        prefixIcon: Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        enabled: enabled,
-        filled: !enabled,
-        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: validator,
-    );
-  }
-
-  Widget _buildSectionHeader({
-    required String title,
-    required IconData icon,
-    required ThemeData theme,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: theme.colorScheme.primary,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModernTimePickerTile({
-    required String label,
-    required TimeOfDay time,
-    required bool enabled,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.3),
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            Icons.access_time_outlined,
-            color: theme.colorScheme.onPrimaryContainer,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            time.format(context),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        onTap: enabled ? onTap : null,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
 
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
@@ -472,9 +374,9 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           Expanded(
             flex: 2,
             child: SizedBox(
@@ -503,9 +405,7 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
                           const SizedBox(width: 12),
                           Text(
                             "Salvando...",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       )
@@ -518,10 +418,10 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _isEditing ? "Salvar Alterações" : "Adicionar Turno",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            _isEditing
+                                ? "Salvar Alterações"
+                                : "Adicionar Turno",
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -532,10 +432,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
       ),
     );
   }
-
-  // ------------------------------
-  // FOOTER (VIEW) - BOTÃO MODERNIZADO
-  // ------------------------------
 
   Widget _buildViewFooter(ThemeData theme) {
     return Container(

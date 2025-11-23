@@ -1,49 +1,54 @@
-import 'package:epi_gest_project/domain/models/organizational/employement_type_model.dart';
+import 'package:appwrite/appwrite.dart';
+import 'package:epi_gest_project/data/services/setor_repository.dart';
+import 'package:epi_gest_project/domain/models/setor_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class EmploymentTypeDrawer extends StatefulWidget {
+class SetorDrawer extends StatefulWidget {
   final VoidCallback onClose;
-  final Function(EmploymentType) onSave;
-  final EmploymentType? typeToEdit;
+  final Function(SetorModel) onSave;
+  final SetorModel? setorToEdit;
   final bool view;
 
-  const EmploymentTypeDrawer({
+  const SetorDrawer({
     super.key,
     required this.onClose,
     required this.onSave,
-    this.typeToEdit,
+    this.setorToEdit,
     this.view = false,
   });
 
   @override
-  State<EmploymentTypeDrawer> createState() => _EmploymentTypeDrawerState();
+  State<SetorDrawer> createState() => _SetorDrawerState();
 }
 
-class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
+class _SetorDrawerState extends State<SetorDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _descricaoController = TextEditingController();
+  final _nomeSetorController = TextEditingController();
+  final _codigoSetorController = TextEditingController();
 
-  bool get _isEditing => widget.typeToEdit != null && !widget.view;
+  bool get _isEditing => widget.setorToEdit != null && !widget.view;
   bool get _isViewing => widget.view;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    if (_isEditing || _isViewing) {
-      _populateForm();
-    }
+    if (_isEditing || _isViewing) _populateForm();
   }
 
   void _populateForm() {
-    final type = widget.typeToEdit!;
-    _descricaoController.text = type.descricao;
+    final setor = widget.setorToEdit!;
+    _nomeSetorController.text = setor.nomeSetor;
+    _codigoSetorController.text = setor.codigoSetor;
   }
 
   @override
   void dispose() {
-    _descricaoController.dispose();
+    _nomeSetorController.dispose();
+    _codigoSetorController.dispose();
     super.dispose();
   }
 
@@ -51,31 +56,65 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 500));
 
-   final typeData = EmploymentType(
-  id: widget.typeToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-  codigo: '', // Campo vazio temporariamente
-  descricao: _descricaoController.text,
-  );
+    final setorModel = SetorModel(
+      id: widget.setorToEdit?.id,
+      codigoSetor: _codigoSetorController.text.trim(),
+      nomeSetor: _nomeSetorController.text.trim(),
+    );
 
-    widget.onSave(typeData);
-    widget.onClose();
+    try {
+      final repository = Provider.of<SetorRepository>(context, listen: false);
 
-    if (mounted) {
-      setState(() => _isSaving = false);
+      if (widget.setorToEdit != null) {
+        await repository.update(widget.setorToEdit!.id!, setorModel.toMap());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Setor atualizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        await repository.create(setorModel);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Setor criado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      widget.onSave(setorModel);
+      widget.onClose();
+    } on AppwriteException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar: ${e.message}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro inesperado: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return BaseDrawer(
       onClose: widget.onClose,
-      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
+      widthFactor: 0.4,
     );
   }
 
@@ -85,17 +124,17 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
     IconData icon;
 
     if (_isViewing) {
-      title = 'Visualizar Vínculo';
-      subtitle = 'Informações completas do vínculo empregatício';
+      title = 'Visualizar Setor';
+      subtitle = 'Informações completas do Setor';
       icon = Icons.visibility_outlined;
     } else if (_isEditing) {
-      title = 'Editar Vínculo';
-      subtitle = 'Altere os dados do vínculo empregatício';
+      title = 'Editar Setor';
+      subtitle = 'Altere os dados do Setor';
       icon = Icons.edit_outlined;
     } else {
-      title = 'Adicionar Vínculo';
-      subtitle = 'Preencha os dados do novo vínculo empregatício';
-      icon = Icons.link_outlined;
+      title = 'Adicionar Setor';
+      subtitle = 'Preencha os dados do novo Setor';
+      icon = Icons.add_business_outlined;
     }
 
     return Container(
@@ -161,75 +200,34 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
 
     return Form(
       key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 20,
           children: [
-            // Campo Descrição (único campo agora)
-            _buildModernTextField(
-              controller: _descricaoController,
-              label: 'Descrição do Vínculo*',
-              hint: 'Ex: CLT, Pessoa Jurídica, Estagiário, Terceirizado',
+            CustomTextField(
+              controller: _codigoSetorController,
+              label: 'Codigo do Setor',
+              hint: 'Ex: PROD01, ADM02, RH01',
+              icon: Icons.workspaces_outlined,
               enabled: isEnabled,
-              icon: Icons.work_history_outlined,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
+            CustomTextField(
+              controller: _nomeSetorController,
+              label: 'Descrição do Setor',
+              hint: 'Ex: Produção, Administrativo, RH, Financeiro',
+              icon: Icons.work_outline,
+              enabled: isEnabled,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+            ),
+            
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required bool enabled,
-    required IconData icon,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      style: TextStyle(
-        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        hintText: hint,
-        prefixIcon: Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        enabled: enabled,
-        filled: !enabled,
-        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: validator,
     );
   }
 
@@ -254,6 +252,7 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
       ),
       child: Row(
         children: [
+          // Botão Cancelar - Estilo moderno
           Expanded(
             child: SizedBox(
               height: 48,
@@ -286,9 +285,10 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
+          // Botão Principal - Estilo moderno
           Expanded(
             flex: 2,
             child: SizedBox(
@@ -317,9 +317,7 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
                           const SizedBox(width: 12),
                           Text(
                             "Salvando...",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       )
@@ -332,10 +330,10 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _isEditing ? "Salvar Alterações" : "Adicionar Vínculo",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            _isEditing
+                                ? "Salvar Alterações"
+                                : "Adicionar Departamento",
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),

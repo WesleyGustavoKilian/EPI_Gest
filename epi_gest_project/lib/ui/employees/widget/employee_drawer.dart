@@ -356,7 +356,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                 children: [
                                   CustomTimeField(
                                     label: 'Horário de Entrada',
-                                    time: _tempEntrada,
+                                    time: _tempEntrada.format(context),
+                                    enabled: true,
                                     onTap: () => _selectTimeModal(
                                       context,
                                       _tempEntrada,
@@ -366,7 +367,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                   ),
                                   CustomTimeField(
                                     label: 'Horário de Saída',
-                                    time: _tempSaida,
+                                    time: _tempSaida.format(context),
+                                    enabled: true,
                                     onTap: () => _selectTimeModal(
                                       context,
                                       _tempSaida,
@@ -385,7 +387,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                 children: [
                                   CustomTimeField(
                                     label: 'Início do Almoço',
-                                    time: _tempAlmocoInicio,
+                                    time: _tempAlmocoInicio.format(context),
+                                    enabled: true,
                                     onTap: () => _selectTimeModal(
                                       context,
                                       _tempAlmocoInicio,
@@ -396,7 +399,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                   ),
                                   CustomTimeField(
                                     label: 'Fim do Almoço',
-                                    time: _tempAlmocoFim,
+                                    time: _tempAlmocoFim.format(context),
+                                    enabled: true,
                                     onTap: () => _selectTimeModal(
                                       context,
                                       _tempAlmocoFim,
@@ -462,7 +466,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       initialTime: initialTime,
     );
     if (picked != null && picked != initialTime) {
-      onTimeSelected(picked);
+      setState(() {
+        onTimeSelected(picked);
+      });
     }
   }
 

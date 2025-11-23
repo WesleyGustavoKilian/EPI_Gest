@@ -1,30 +1,34 @@
-import 'package:epi_gest_project/domain/models/organizational/role_model.dart';
+import 'package:appwrite/appwrite.dart';
+import 'package:epi_gest_project/data/services/vinculo_repository.dart';
+import 'package:epi_gest_project/domain/models/vinculo_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class RoleDrawer extends StatefulWidget {
+class VinculoDrawer extends StatefulWidget {
   final VoidCallback onClose;
-  final Function(Role) onSave;
-  final Role? roleToEdit;
+  final Function(VinculoModel) onSave;
+  final VinculoModel? vinculoToEdit;
   final bool view;
 
-  const RoleDrawer({
+  const VinculoDrawer({
     super.key,
     required this.onClose,
     required this.onSave,
-    this.roleToEdit,
+    this.vinculoToEdit,
     this.view = false,
   });
 
   @override
-  State<RoleDrawer> createState() => _RoleDrawerState();
+  State<VinculoDrawer> createState() => _VinculoDrawerState();
 }
 
-class _RoleDrawerState extends State<RoleDrawer> {
+class _VinculoDrawerState extends State<VinculoDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _descricaoController = TextEditingController();
+  final _nomeVinculoController = TextEditingController();
 
-  bool get _isEditing => widget.roleToEdit != null && !widget.view;
+  bool get _isEditing => widget.vinculoToEdit != null && !widget.view;
   bool get _isViewing => widget.view;
   bool _isSaving = false;
 
@@ -37,13 +41,13 @@ class _RoleDrawerState extends State<RoleDrawer> {
   }
 
   void _populateForm() {
-    final role = widget.roleToEdit!;
-    _descricaoController.text = role.descricao;
+    final vinculo = widget.vinculoToEdit!;
+    _nomeVinculoController.text = vinculo.nomeVinculo;
   }
 
   @override
   void dispose() {
-    _descricaoController.dispose();
+    _nomeVinculoController.dispose();
     super.dispose();
   }
 
@@ -51,25 +55,57 @@ class _RoleDrawerState extends State<RoleDrawer> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 500));
 
-    final roleData = Role(
-      id: widget.roleToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      codigo: '', // Código removido
-      descricao: _descricaoController.text,
+    final vinculoModel = VinculoModel(
+      nomeVinculo: _nomeVinculoController.text.trim(),
     );
 
-    widget.onSave(roleData);
-    widget.onClose();
+    try {
+      final repository = Provider.of<VinculoRepository>(context, listen: false);
 
-    if (mounted) {
-      setState(() => _isSaving = false);
+      if (widget.vinculoToEdit != null) {
+        await repository.update(widget.vinculoToEdit!.id!, vinculoModel.toMap());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vinculo atualizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        await repository.create(vinculoModel);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vinculo criado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      widget.onSave(vinculoModel);
+      widget.onClose();
+    } on AppwriteException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar: ${e.message}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro inesperado: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return BaseDrawer(
       onClose: widget.onClose,
       widthFactor: 0.4,
@@ -79,27 +115,23 @@ class _RoleDrawerState extends State<RoleDrawer> {
     );
   }
 
-  // ------------------------------
-  // HEADER - PADRÃO MODERNO
-  // ------------------------------
-
   Widget _buildHeader(ThemeData theme) {
     String title;
     String subtitle;
     IconData icon;
 
     if (_isViewing) {
-      title = 'Visualizar Cargo';
-      subtitle = 'Informações completas do cargo';
+      title = 'Visualizar Vínculo';
+      subtitle = 'Informações completas do vínculo';
       icon = Icons.visibility_outlined;
     } else if (_isEditing) {
-      title = 'Editar Cargo';
-      subtitle = 'Altere os dados do cargo';
+      title = 'Editar Vínculo';
+      subtitle = 'Altere os dados do vínculo';
       icon = Icons.edit_outlined;
     } else {
-      title = 'Adicionar Cargo/Função';
-      subtitle = 'Preencha os dados do novo cargo';
-      icon = Icons.add_card_outlined;
+      title = 'Adicionar Vínculo';
+      subtitle = 'Preencha os dados do novo vínculo';
+      icon = Icons.link_outlined;
     }
 
     return Container(
@@ -160,10 +192,6 @@ class _RoleDrawerState extends State<RoleDrawer> {
     );
   }
 
-  // ------------------------------
-  // FORM - CAMPOS MODERNOS (SEM CÓDIGO)
-  // ------------------------------
-
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 
@@ -174,80 +202,20 @@ class _RoleDrawerState extends State<RoleDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo Descrição (único campo agora)
-            _buildModernTextField(
-              controller: _descricaoController,
-              label: 'Descrição do Cargo*',
-              hint: 'Ex: Analista, Gerente, Assistente, Operador',
+            CustomTextField(
+              controller: _nomeVinculoController,
+              label: 'Descrição do Vínculo',
+              hint: 'Ex: CLT, Pessoa Jurídica, Estagiário, Terceirizado',
               enabled: isEnabled,
-              icon: Icons.work_outline,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              icon: Icons.work_history_outlined,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
           ],
         ),
       ),
     );
   }
-
-  // ------------------------------
-  // COMPONENTE DE CAMPO MODERNO
-  // ------------------------------
-
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required bool enabled,
-    required IconData icon,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      style: TextStyle(
-        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        hintText: hint,
-        prefixIcon: Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        enabled: enabled,
-        filled: !enabled,
-        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: validator,
-    );
-  }
-
-  // ------------------------------
-  // FOOTER (EDITAR) - BOTÕES MODERNOS
-  // ------------------------------
 
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
@@ -270,7 +238,6 @@ class _RoleDrawerState extends State<RoleDrawer> {
       ),
       child: Row(
         children: [
-          // Botão Cancelar - Estilo moderno
           Expanded(
             child: SizedBox(
               height: 48,
@@ -303,10 +270,9 @@ class _RoleDrawerState extends State<RoleDrawer> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
-          // Botão Principal - Estilo moderno
+
           Expanded(
             flex: 2,
             child: SizedBox(
@@ -335,9 +301,7 @@ class _RoleDrawerState extends State<RoleDrawer> {
                           const SizedBox(width: 12),
                           Text(
                             "Salvando...",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       )
@@ -350,10 +314,10 @@ class _RoleDrawerState extends State<RoleDrawer> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _isEditing ? "Salvar Alterações" : "Adicionar Cargo",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            _isEditing
+                                ? "Salvar Alterações"
+                                : "Adicionar Vínculo",
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -364,10 +328,6 @@ class _RoleDrawerState extends State<RoleDrawer> {
       ),
     );
   }
-
-  // ------------------------------
-  // FOOTER (VIEW) - BOTÃO MODERNIZADO
-  // ------------------------------
 
   Widget _buildViewFooter(ThemeData theme) {
     return Container(

@@ -1,12 +1,12 @@
 import 'package:epi_gest_project/ui/organizational_structure/widgets/organizational_type_card.dart';
+import 'package:epi_gest_project/ui/organizational_structure/widgets/unidade/unidade_widget.dart';
 import 'package:flutter/material.dart';
-import 'widgets/units/units_widget.dart';
 import 'widgets/epi_maping/epi_maping_widget.dart';
-import 'widgets/department/departments_widget.dart';
-import 'widgets/roles/roles_widget.dart';
-import 'widgets/employment_type/employment_types_widget.dart';
-import 'widgets/shifts/shifts_widget.dart';
-import 'widgets/risks/risks_widget.dart';
+import 'widgets/setor/setor_widget.dart';
+import 'widgets/cargo/cargo_widget.dart';
+import 'widgets/vinculo/vinculo_widget.dart';
+import 'widgets/turno/turno_widget.dart';
+import 'widgets/riscos/riscos_widget.dart';
 
 
 class OrganizationalStructurePage extends StatefulWidget {
@@ -22,12 +22,12 @@ class _OrganizationalStructurePageState
   int? _selectedSection;
 
   // Keys para controlar cada widget
-  final GlobalKey<UnitsWidgetState> _unitsKey = GlobalKey();
-  final GlobalKey<DepartmentsWidgetState> _departmentsKey = GlobalKey();
-  final GlobalKey<RolesWidgetState> _rolesKey = GlobalKey();
-  final GlobalKey<EmploymentTypesWidgetState> _employmentTypesKey = GlobalKey();
-  final GlobalKey<ShiftsWidgetState> _shiftsKey = GlobalKey();
-  final GlobalKey<RisksWidgetState> _risksKey = GlobalKey();
+  final GlobalKey<UnidadeWidgetState> _unidadeKey = GlobalKey();
+  final GlobalKey<SetorWidgetState> _departmentsKey = GlobalKey();
+  final GlobalKey<CargoWidgetState> _cargoKey = GlobalKey();
+  final GlobalKey<VinculoWidgetState> _vinculoKey = GlobalKey();
+  final GlobalKey<TurnoWidgetState> _shiftsKey = GlobalKey();
+  final GlobalKey<RiscosWidgetState> _riscosKey = GlobalKey();
   final GlobalKey<EpiMapingWidgetState> _epiMapingKey = GlobalKey();
 
   final List<Map<String, dynamic>> _sections = [
@@ -84,19 +84,19 @@ class _OrganizationalStructurePageState
   Widget _getSectionWidget(int index) {
     switch (index) {
       case 0:
-        return UnitsWidget(key: _unitsKey);
+        return UnidadeWidget(key: _unidadeKey);
       case 1:
-        return DepartmentsWidget(key: _departmentsKey);
+        return SetorWidget(key: _departmentsKey);
       case 2:
-        return RolesWidget(key: _rolesKey);
+        return CargoWidget(key: _cargoKey);
       case 3:
-        return RisksWidget(key: _risksKey);
+        return RiscosWidget(key: _riscosKey);
       case 4:
         return EpiMapingWidget(key: _epiMapingKey);
       case 5:
-        return EmploymentTypesWidget(key: _employmentTypesKey);
+        return VinculoWidget(key: _vinculoKey);
       case 6:
-        return ShiftsWidget(key: _shiftsKey);
+        return TurnoWidget(key: _shiftsKey);
       default:
         return const Center(child: Text('Seção não encontrada'));
     }
@@ -126,22 +126,22 @@ class _OrganizationalStructurePageState
   void _triggerAddAction(int sectionIndex) {
     switch (sectionIndex) {
       case 0:
-        _unitsKey.currentState?.showAddDrawer();
+        _unidadeKey.currentState?.showAddDrawer();
         break;
       case 1:
         _departmentsKey.currentState?.showAddDrawer();
         break;
       case 2:
-        _rolesKey.currentState?.showAddDrawer();
+        _cargoKey.currentState?.showAddDrawer();
         break;
       case 3:
-        _risksKey.currentState?.showAddDrawer();
+        _riscosKey.currentState?.showAddDrawer();
         break;
       case 4:
         _epiMapingKey.currentState?.showAddDrawer();
         break;
       case 5:
-        _employmentTypesKey.currentState?.showAddDrawer();
+        _vinculoKey.currentState?.showAddDrawer();
       case 6:
         _shiftsKey.currentState?.showAddDrawer();
         break;

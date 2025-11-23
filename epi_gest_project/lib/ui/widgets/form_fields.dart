@@ -99,14 +99,16 @@ class CustomDateField extends StatelessWidget {
 
 class CustomTimeField extends StatelessWidget {
   final String label;
-  final TimeOfDay time;
+  final String time;
   final VoidCallback onTap;
+  final bool enabled;
 
   const CustomTimeField({
     super.key,
     required this.label,
     required this.time,
     required this.onTap,
+    required this.enabled,
   });
 
   @override
@@ -119,6 +121,7 @@ class CustomTimeField extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
+        enabled: enabled,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(8),
@@ -148,7 +151,7 @@ class CustomTimeField extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            time.format(context),
+            time,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.onSurfaceVariant,

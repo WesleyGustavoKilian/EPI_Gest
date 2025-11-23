@@ -1,4 +1,3 @@
-// lib/data/repositories/funcionario_repository.dart
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'base_repository.dart';

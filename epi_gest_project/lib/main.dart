@@ -1,7 +1,11 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/config/theme_notifier.dart';
+import 'package:epi_gest_project/data/services/cargo_repository.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/riscos_repository.dart';
+import 'package:epi_gest_project/data/services/setor_repository.dart';
 import 'package:epi_gest_project/data/services/turno_repository.dart';
+import 'package:epi_gest_project/data/services/unidade_repository.dart';
 import 'package:epi_gest_project/data/services/vinculo_repository.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:epi_gest_project/ui/home/home_page.dart';
@@ -10,6 +14,7 @@ import 'package:provider/provider.dart';
 
 void main() {
   Client client = Client();
+  final databases = TablesDB(client);
   client
       .setEndpoint('https://nyc.cloud.appwrite.io/v1')
       .setProject('68ac56f3001bcef1296e')
@@ -17,15 +22,16 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        Provider<FuncionarioRepository>(
-          create: (_) => FuncionarioRepository(TablesDB(client)),
-        ),
-        Provider<VinculoRepository>(
-          create: (_) => VinculoRepository(TablesDB(client)),
-        ),
-        Provider<TurnoRepository>(
-          create: (_) => TurnoRepository(TablesDB(client)),
-        ),
+        Provider<FuncionarioRepository>(create: (_) => FuncionarioRepository(databases)),
+        Provider<VinculoRepository>(create: (_) => VinculoRepository(databases)),
+        Provider<TurnoRepository>(create: (_) => TurnoRepository(databases)),
+
+        // Repositórios da Estrutura Organizacional
+        Provider<UnidadeRepository>(create: (_) => UnidadeRepository(databases)),
+        Provider<SetorRepository>(create: (_) => SetorRepository(databases)),
+        Provider<CargoRepository>(create: (_) => CargoRepository(databases)),
+        Provider<RiscosRepository>(create: (_) => RiscosRepository(databases)),
+
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
       ],
       child: const MyApp(),
