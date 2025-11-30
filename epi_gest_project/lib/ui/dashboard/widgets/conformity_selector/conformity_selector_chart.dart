@@ -346,7 +346,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
       builder: (context, value, child) {
         final gradientColors = _getConformityGradient(value);
 
-        return Container(
+        return SizedBox(
           height: size,
           child: Stack(
             alignment: Alignment.center,
@@ -355,7 +355,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
               if (value > 70)
                 Positioned.fill(
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 1000),
+                    duration: const Duration(milliseconds: 750),
                     margin: EdgeInsets.all(size * 0.15),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -387,7 +387,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                       // Fundo do gauge
                       RangePointer(
                         value: 100,
-                        width: 0.28,
+                        width: 0.35,
                         cornerStyle: CornerStyle.bothCurve,
                         color: cs.onSurfaceVariant.withValues(alpha: 0.1),
                         dashArray: const [4, 8],
@@ -396,7 +396,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                       // Valor principal
                       RangePointer(
                         value: value,
-                        width: 0.24,
+                        width: 3.5,
                         cornerStyle: CornerStyle.bothCurve,
                         gradient: SweepGradient(
                           colors: gradientColors,
@@ -761,9 +761,12 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                           pointers: [
                             RangePointer(
                               value: conformity,
-                              width: 0.12,
+                              width: 3.5,
                               cornerStyle: CornerStyle.bothCurve,
-                              gradient: SweepGradient(colors: gradient),
+                              gradient: SweepGradient(
+                                colors: _getConformityGradient(conformity),
+                                stops: const [0.2, 0.8],
+                              ),
                             ),
                             MarkerPointer(
                               value: conformity,
@@ -1016,6 +1019,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
               getSectorConformity: _getSectorConformity,
               getSectorEmployees: _getSectorEmployees,
               getSectorEpis: _getSectorEpis,
+              getConformityGradient: _getConformityGradient,
               getConformityColor: _getConformityColor,
               getConformityStatus: _getConformityStatus,
             ),

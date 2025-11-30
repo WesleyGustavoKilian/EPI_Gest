@@ -5,6 +5,7 @@ import 'package:epi_gest_project/domain/models/ficha_entrega_model.dart';
 import 'package:epi_gest_project/domain/models/ficha_epi_model.dart';
 import 'package:epi_gest_project/domain/models/funcionarios/mapeamento_funcionario_model.dart';
 import 'package:epi_gest_project/ui/entrega_epi/widgets/entrega_epi_drawer.dart';
+import 'package:epi_gest_project/ui/entrega_epi/widgets/ficha_epi_preview_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -185,13 +186,6 @@ class _ExchangePageState extends State<ExchangePage> {
             employeeStatuses.contains(EpiStatusEnum.aVencer)) {
           matchesStatus = true;
         }
-
-        // Lógica especial para "Em Dia":
-        // Consideramos "Em Dia" apenas se o funcionário NÃO tiver pendências críticas
-        // OU se ele tiver pelo menos um item em dia?
-        // Geralmente "Em Dia" como filtro isolado busca quem está 100% ok.
-        // Mas em combinação, busca quem tem itens OK.
-        // Vamos usar a lógica: Se selecionado "Em Dia" e o funcionário está 100% OK -> true
         if (_selectedStatusFilters.contains(EpiStatusEnum.emDia)) {
           final bool isFullyCompliant =
               !employeeStatuses.contains(EpiStatusEnum.pendente) &&
@@ -248,6 +242,50 @@ class _ExchangePageState extends State<ExchangePage> {
     setState(() {
       _loadExchangeFuture = _loadData();
     });
+  }
+
+  Future<void> _generateFichaEpiDocument(
+    MapeamentoFuncionarioModel mapFunc,
+  ) async {
+    // 1. Mostrar loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // 2. Buscar histórico completo do funcionário
+      final repo = Provider.of<FichaEntregaRepository>(context, listen: false);
+      final historico = await repo.getByFuncionario(mapFunc.id!); 
+
+      if (!mounted) return;
+      Navigator.pop(context); // Fechar loading
+
+      if (historico.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nenhum histórico de entrega encontrado para este funcionário.')),
+        );
+        return;
+      }
+
+      // 3. Navegar para a tela de pré-visualização (PDF Preview)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FichaEpiPreviewPage(
+            mapFunc: mapFunc,
+            historico: historico,
+          ),
+        ),
+      );
+
+    } catch (e) {
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context); // Fecha loading se erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar dados da ficha: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   @override
@@ -493,6 +531,7 @@ class _ExchangePageState extends State<ExchangePage> {
             mapFunc: mapFunc,
             epiStatusMap: statusMap,
             onDeliverPressed: () => _openDeliveryDrawer(mapFunc),
+            onGenerateFichaPressed: () => _generateFichaEpiDocument(mapFunc),
           ),
         );
       },
@@ -505,11 +544,13 @@ class _EmployeeDeliveryCard extends StatelessWidget {
   final MapeamentoFuncionarioModel mapFunc;
   final Map<String, EpiStatusData> epiStatusMap;
   final VoidCallback onDeliverPressed;
+  final VoidCallback onGenerateFichaPressed;
 
   const _EmployeeDeliveryCard({
     required this.mapFunc,
     required this.epiStatusMap,
     required this.onDeliverPressed,
+    required this.onGenerateFichaPressed,
   });
 
   @override
@@ -624,15 +665,29 @@ class _EmployeeDeliveryCard extends StatelessWidget {
             ),
           ],
         ),
-        trailing: FilledButton.icon(
-          onPressed: onDeliverPressed,
-          icon: Icon(buttonIcon, size: 18),
-          label: Text(buttonLabel),
-          style: FilledButton.styleFrom(
-            backgroundColor: statusColor.withValues(alpha: 0.1),
-            foregroundColor: statusColor,
-            elevation: 0,
-          ),
+        trailing: Row(
+          spacing: 8,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.history_edu),
+              tooltip: 'Gerar Ficha de EPI',
+              onPressed: onGenerateFichaPressed,
+              style: IconButton.styleFrom(
+                foregroundColor: colorScheme.secondary,
+              ),
+            ),
+            FilledButton.icon(
+              onPressed: onDeliverPressed,
+              icon: Icon(buttonIcon, size: 18),
+              label: Text(buttonLabel),
+              style: FilledButton.styleFrom(
+                backgroundColor: statusColor.withValues(alpha: 0.1),
+                foregroundColor: statusColor,
+                elevation: 0,
+              ),
+            ),
+          ],
         ),
         children: [
           Container(

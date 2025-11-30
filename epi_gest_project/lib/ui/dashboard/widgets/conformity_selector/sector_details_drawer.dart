@@ -8,6 +8,7 @@ class SectorDetailsDrawer extends StatefulWidget {
   final Function(String) getSectorConformity;
   final Function(String) getSectorEmployees;
   final Function(String) getSectorEpis;
+  final Function(double) getConformityGradient;
   final Function(double) getConformityColor;
   final Function(double) getConformityStatus;
 
@@ -20,6 +21,7 @@ class SectorDetailsDrawer extends StatefulWidget {
     required this.getSectorEpis,
     required this.getConformityColor,
     required this.getConformityStatus,
+    required this.getConformityGradient,
   });
 
   @override
@@ -179,9 +181,9 @@ class _SectorDetailsDrawerState extends State<SectorDetailsDrawer> {
                     ),
                     RangePointer(
                       value: conformity,
-                      width: 0.18,
+                      width: 3.5,
                       cornerStyle: CornerStyle.bothCurve,
-                      gradient: SweepGradient(colors: gradient),
+                      gradient: SweepGradient(colors: widget.getConformityGradient(conformity)),
                     ),
                     MarkerPointer(
                       value: conformity,

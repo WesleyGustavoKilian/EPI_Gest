@@ -59,10 +59,12 @@ class FichaEntregaRepository extends BaseRepository<FichaEntregaModel> {
   Future<List<FichaEntregaModel>> getByFuncionario(String mapFuncId) async {
     try {
       return await getAll([
-        Query.equal('mapeamentoFuncionario_id', mapFuncId),
+        Query.equal('mapeamento_funcionario_id', mapFuncId),
         Query.orderDesc('\$createdAt'),
         Query.select([
           '*',
+          'mapeamento_funcionario_id.unidade_id.*',
+          'mapeamento_funcionario_id.funcionario_id.*',
           'ficha_epi_id.*',
           'ficha_epi_id.epi_id.*',
         ]),
