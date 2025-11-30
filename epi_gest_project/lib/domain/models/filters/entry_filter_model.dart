@@ -1,7 +1,7 @@
 class EntryFilterModel {
   final String? notaFiscal;
-  final String? fornecedor;
-  final String? produto;
+  final List<String>? fornecedor;
+  final List<String>? produto;
   final DateTime? dataInicio;
   final DateTime? dataFim;
 
@@ -31,14 +31,13 @@ class EntryFilterModel {
     if (fornecedor != null && fornecedor!.isNotEmpty) count++;
     if (produto != null && produto!.isNotEmpty) count++;
     if (dataInicio != null) count++;
-    if (dataFim != null) count++;
     return count;
   }
 
   EntryFilterModel copyWith({
     String? notaFiscal,
-    String? fornecedor,
-    String? produto,
+    List<String>? fornecedor,
+    List<String>? produto,
     DateTime? dataInicio,
     DateTime? dataFim,
   }) {

@@ -43,7 +43,10 @@ class _EntryPageState extends State<EntryPage> {
 
     try {
       final entryRepo = Provider.of<EntradasRepository>(context, listen: false);
-      final fornecedorRepo = Provider.of<FornecedorRepository>(context, listen: false);
+      final fornecedorRepo = Provider.of<FornecedorRepository>(
+        context,
+        listen: false,
+      );
       final epiRepo = Provider.of<EpiRepository>(context, listen: false);
 
       // Carregamento paralelo
@@ -61,10 +64,17 @@ class _EntryPageState extends State<EntryPage> {
         setState(() {
           _allEntries = entries;
           _filteredEntries = entries;
-          
-          _availableFornecedores = fornecedores.map((f) => f.nomeFornecedor.toString()).toSet().toList()..sort();
-          _availableProdutos = epis.map((e) => e.nomeProduto.toString()).toSet().toList()..sort();
-          
+
+          _availableFornecedores =
+              fornecedores
+                  .map((f) => f.nomeFornecedor.toString())
+                  .toSet()
+                  .toList()
+                ..sort();
+          _availableProdutos =
+              epis.map((e) => e.nomeProduto.toString()).toSet().toList()
+                ..sort();
+
           _applyLocalFilters();
           _isLoading = false;
         });
@@ -119,16 +129,15 @@ class _EntryPageState extends State<EntryPage> {
             _appliedFilters.fornecedor!.isNotEmpty) {
           matches =
               matches &&
-              entry.fornecedorId.nomeFornecedor.toLowerCase().contains(
-                _appliedFilters.fornecedor!.toLowerCase(),
+              _appliedFilters.fornecedor!.contains(
+                entry.fornecedorId.nomeFornecedor,
               );
         }
 
         if (_appliedFilters.produto != null &&
             _appliedFilters.produto!.isNotEmpty) {
-          final query = _appliedFilters.produto!.toLowerCase();
           final hasProduct = entry.entradasId.any(
-            (item) => item.epi.nomeProduto.toLowerCase().contains(query),
+            (item) => _appliedFilters.produto!.contains(item.epi.nomeProduto),
           );
           matches = matches && hasProduct;
         }
@@ -314,7 +323,9 @@ class _EntryPageState extends State<EntryPage> {
                       child: IconButton.filledTonal(
                         onPressed: _toggleFilters,
                         icon: Icon(
-                          _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
+                          _showFilters
+                              ? Icons.filter_alt_off
+                              : Icons.filter_alt,
                         ),
                         tooltip: _showFilters
                             ? 'Ocultar filtros'

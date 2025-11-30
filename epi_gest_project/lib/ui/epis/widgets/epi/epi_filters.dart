@@ -472,10 +472,12 @@ class _EpiFiltersState extends State<EpiFilters> {
 
       String label = '';
       String displayValue = '';
+      IconData icon = Icons.filter_alt;
 
       switch (key) {
         case 'validades':
           label = 'Validade';
+          icon = Icons.calendar_today_outlined;
           final validades = value as List<String>;
           displayValue = validades
               .map((v) => _getValidadeLabel(v))
@@ -483,10 +485,12 @@ class _EpiFiltersState extends State<EpiFilters> {
           break;
         case 'ca':
           label = 'CA';
+          icon = Icons.tag_outlined;
           displayValue = value.toString();
           break;
         case 'categorias':
           label = 'Categoria';
+          icon = Icons.category_outlined;
           final categorias = value as List<String>;
           displayValue = categorias.length == 1
               ? categorias.first
@@ -494,10 +498,12 @@ class _EpiFiltersState extends State<EpiFilters> {
           break;
         case 'nome':
           label = 'Nome';
+          icon = Icons.search;
           displayValue = value.toString();
           break;
         case 'marcas':
           label = 'Marcas';
+          icon = Icons.business_outlined;
           final marcas = value as List<String>;
 
           if (widget.suppliers.isNotEmpty && marcas.length == widget.suppliers.length) {
@@ -510,11 +516,13 @@ class _EpiFiltersState extends State<EpiFilters> {
           break;
         case 'quantidade':
           label = 'Quantidade';
+          icon = Icons.inventory_2_outlined;
           final operator = filtersMap['quantidadeOperador'] ?? '=';
           displayValue = '$operator $value';
           break;
         case 'valor':
           label = 'Valor';
+          icon = Icons.attach_money;
           final operator = filtersMap['valorOperador'] ?? '=';
           displayValue = '$operator R\$ ${value.toStringAsFixed(2)}';
           break;
@@ -523,7 +531,7 @@ class _EpiFiltersState extends State<EpiFilters> {
       if (label.isNotEmpty) {
         chips.add(
           Chip(
-            avatar: const Icon(Icons.filter_alt, size: 18),
+            avatar: Icon(icon, size: 18),
             label: Text('$label: $displayValue'),
             onDeleted: () {
               final newFiltersMap = Map<String, dynamic>.from(filtersMap);

@@ -1,5 +1,5 @@
 import 'package:epi_gest_project/domain/models/filters/entry_filter_model.dart';
-import 'package:epi_gest_project/ui/widgets/form_fields.dart';
+import 'package:epi_gest_project/ui/widgets/multi_select_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -28,8 +28,6 @@ class _EntryFiltersState extends State<EntryFilters> {
 
   // Controllers
   final TextEditingController _notaFiscalController = TextEditingController();
-  final TextEditingController _fornecedorController = TextEditingController();
-  final TextEditingController _produtoController = TextEditingController();
   final TextEditingController _dateRangeController = TextEditingController();
 
   @override
@@ -37,18 +35,12 @@ class _EntryFiltersState extends State<EntryFilters> {
     super.initState();
     _loadFilters();
 
-    _notaFiscalController.addListener(_onFieldsChanged);
-    _fornecedorController.addListener(_onFieldsChanged);
-    _produtoController.addListener(_onFieldsChanged);
+    _notaFiscalController.addListener(_onTextFieldsChanged);
   }
 
   void _loadFilters() {
     _tempFilters = widget.appliedFilters;
     _notaFiscalController.text = _tempFilters.notaFiscal ?? '';
-    _fornecedorController.text = _tempFilters.fornecedor ?? '';
-    _produtoController.text = _tempFilters.produto ?? '';
-
-    // Formata o texto do Range de Datas
     _updateDateRangeText();
   }
 
@@ -62,15 +54,10 @@ class _EntryFiltersState extends State<EntryFilters> {
     }
   }
 
-  // Atualiza o _tempFilters baseado nos controllers
-  void _onFieldsChanged() {
+  void _onTextFieldsChanged() {
     setState(() {
-      _tempFilters = EntryFilterModel(
+      _tempFilters = _tempFilters.copyWith(
         notaFiscal: _notaFiscalController.text.isEmpty ? null : _notaFiscalController.text,
-        fornecedor: _fornecedorController.text.isEmpty ? null : _fornecedorController.text,
-        produto: _produtoController.text.isEmpty ? null : _produtoController.text,
-        dataInicio: _tempFilters.dataInicio, // Mantém datas existentes
-        dataFim: _tempFilters.dataFim,
       );
     });
   }
@@ -86,8 +73,6 @@ class _EntryFiltersState extends State<EntryFilters> {
   @override
   void dispose() {
     _notaFiscalController.dispose();
-    _fornecedorController.dispose();
-    _produtoController.dispose();
     _dateRangeController.dispose();
     super.dispose();
   }
@@ -265,25 +250,39 @@ class _EntryFiltersState extends State<EntryFilters> {
 
               Expanded(
                 flex: 2,
-                child: CustomAutocompleteField(
-                  controller: _fornecedorController,
+                child: MultiSelectDropdown(
                   label: 'Fornecedor',
-                  hint: 'Selecione...',
                   icon: Icons.business_outlined,
-                  suggestions: widget.fornecedor,
-                  showAddButton: false, // Filtro não adiciona
+                  items: widget.fornecedor,
+                  selectedItems: _tempFilters.fornecedor ?? [],
+                  width: 300,
+                  allItemsLabel: 'Todos',
+                  onChanged: (selected) {
+                    setState(() {
+                      _tempFilters = _tempFilters.copyWith(
+                        fornecedor: selected.isEmpty ? null : selected,
+                      );
+                    });
+                  },
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 flex: 2,
-                child: CustomAutocompleteField(
-                  controller: _produtoController,
+                child: MultiSelectDropdown(
                   label: 'Produto (Item)',
-                  hint: 'Selecione...',
                   icon: Icons.inventory_2_outlined,
-                  suggestions: widget.produto,
-                  showAddButton: false, // Filtro não adiciona
+                  items: widget.produto,
+                  selectedItems: _tempFilters.produto ?? [],
+                  width: 300,
+                  allItemsLabel: 'Todos',
+                  onChanged: (selected) {
+                    setState(() {
+                      _tempFilters = _tempFilters.copyWith(
+                        produto: selected.isEmpty ? null : selected,
+                      );
+                    });
+                  },
                 ),
               ),
               const SizedBox(width: 16),
@@ -333,12 +332,14 @@ class _EntryFiltersState extends State<EntryFilters> {
           break;
         case 'fornecedor':
           label = 'Fornecedor';
-          displayValue = value.toString();
+          final list = value as List<String>;
+          displayValue = list.length > 1 ? '${list.length} selecionados' : list.first;
           icon = Icons.business;
           break;
         case 'produto':
           label = 'Produto';
-          displayValue = value.toString();
+          final list = value as List<String>;
+          displayValue = list.length > 1 ? '${list.length} selecionados' : list.first;
           icon = Icons.inventory_2;
           break;
       }
@@ -358,9 +359,7 @@ class _EntryFiltersState extends State<EntryFilters> {
               setState(() {
                 _tempFilters = newFilters;
                 if (key == 'nf_ref') _notaFiscalController.clear();
-                if (key == 'fornecedor') _fornecedorController.clear();
-                if (key == 'produto') _produtoController.clear();
-                if (key == 'data_inicio' && key == 'data_fim') _dateRangeController.clear();
+                if (key == 'data_inicio') _dateRangeController.clear();
               });
             },
             deleteIcon: const Icon(Icons.close, size: 18),

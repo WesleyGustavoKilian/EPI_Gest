@@ -31,7 +31,13 @@ class MapeamentoFuncionarioRepository
 
   Future<List<MapeamentoFuncionarioModel>> getAllRelations() async {
     return await getAll([
-      Query.select(['funcionario_id.*', 'mapeamento_id.*']),
+      Query.select([
+        'funcionario_id.*',
+        'mapeamento_id.*',
+        'mapeamento_id.setor_id.*',
+        'mapeamento_id.cargo_id.*',
+        'mapeamento_id.epi_ids.*',
+      ]),
     ]);
   }
 
@@ -61,7 +67,7 @@ class MapeamentoFuncionarioRepository
         tableId: tableId,
         queries: [
           Query.equal('mapeamento_id', [oldMapeamentoId]),
-          Query.limit(100), 
+          Query.limit(100),
         ],
       );
 

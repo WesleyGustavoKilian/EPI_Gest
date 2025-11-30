@@ -3,6 +3,8 @@ import 'package:epi_gest_project/config/theme_notifier.dart';
 import 'package:epi_gest_project/data/services/entradas_epi_repository.dart';
 import 'package:epi_gest_project/data/services/entradas_repository.dart';
 import 'package:epi_gest_project/data/services/epi_repository.dart';
+import 'package:epi_gest_project/data/services/ficha_entrega_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/ficha_epi_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/cargo_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/armazem_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
@@ -39,11 +41,24 @@ void main() {
         Provider<EpiRepository>(create: (_) => EpiRepository(databases)),
 
         Provider<EntradasEpiRepository>(create: (_) => EntradasEpiRepository(databases)),
-        Provider<EntradasRepository>(create: (context) => EntradasRepository(
-          databases,
-          Provider.of<EpiRepository>(context, listen: false),
-          Provider.of<EntradasEpiRepository>(context, listen: false),
-        )),
+        ProxyProvider2<EpiRepository, EntradasEpiRepository, EntradasRepository>(
+          update: (context, epiRepo, entradasEpiRepo, previous) => 
+              EntradasRepository(
+            databases,
+            epiRepo,
+            entradasEpiRepo,
+          ),
+        ),
+
+        Provider<FichaEpiRepository>(create: (_) => FichaEpiRepository(databases)),
+        ProxyProvider2<FichaEpiRepository, EpiRepository, FichaEntregaRepository>(
+          update: (context, fichaEpiRepo, epiRepo, previous) => 
+              FichaEntregaRepository(
+            databases,
+            fichaEpiRepo,
+            epiRepo,
+          ),
+        ),
 
         // Repositórios da Estrutura Organizacional
         Provider<UnidadeRepository>(create: (_) => UnidadeRepository(databases)),
